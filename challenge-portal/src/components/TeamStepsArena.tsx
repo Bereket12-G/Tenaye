@@ -101,6 +101,7 @@ export default function TeamStepsArena() {
   const lastStepRef = useRef(0)
   const lastBelowRef = useRef(true)
   const visibleRef = useRef(true)
+  const sensorRef = useRef<any>(null)
 
   // persist
   useEffect(() => {
@@ -135,43 +136,42 @@ export default function TeamStepsArena() {
     return () => clearInterval(id)
   }, [state.autoSim, state.winnerId, state.target, fanfare])
 
-  // motion pedometer listener
+  // motion pedometer listener (DeviceMotion + Generic Sensor API fallback)
   useEffect(() => {
     if (!motionOn || state.winnerId) return
-    const hasMotion = 'DeviceMotionEvent' in window
-    if (!hasMotion) return
 
-    const handler = (e: DeviceMotionEvent) => {
+    const onStep = () => {
+      setState((prev) => {
+        if (prev.winnerId) return prev
+        const updated = prev.runners.map((r) => r.id === prev.youId ? { ...r, steps: r.steps + 1 } : r)
+        const win = updated.find((r) => r.steps >= prev.target)
+        if (win && !prev.winnerId) setTimeout(() => fanfare(), 0)
+        return { ...prev, runners: updated, winnerId: win ? win.id : null }
+      })
+      blip()
+    }
+
+    let dmActive = false
+    const dmHandler = (e: DeviceMotionEvent) => {
       if (!visibleRef.current) return
       const acc = (e.accelerationIncludingGravity || e.acceleration)
       if (!acc) return
       const ax = acc.x || 0, ay = acc.y || 0, az = acc.z || 0
-      const m = Math.sqrt(ax*ax + ay*ay + az*az) // m/s^2
+      const m = Math.sqrt(ax*ax + ay*ay + az*az)
       const g = m / 9.81
       setCurrentG(g)
-
       const now = Date.now()
       const debounceOk = now - lastStepRef.current >= debounceMs
       const crossedUp = lastBelowRef.current && g > sensitivityG
       if (debounceOk && crossedUp) {
         lastStepRef.current = now
         lastBelowRef.current = false
-        // increment your runner
-        setState((prev) => {
-          if (prev.winnerId) return prev
-          const updated = prev.runners.map((r) => r.id === prev.youId ? { ...r, steps: r.steps + 1 } : r)
-          const win = updated.find((r) => r.steps >= prev.target)
-          if (win && !prev.winnerId) setTimeout(() => fanfare(), 0)
-          return { ...prev, runners: updated, winnerId: win ? win.id : null }
-        })
-        blip()
+        onStep()
       }
-      if (g < Math.max(1, sensitivityG - 0.15)) {
-        lastBelowRef.current = true
-      }
+      if (g < Math.max(1, sensitivityG - 0.15)) lastBelowRef.current = true
     }
 
-    // iOS permission
+    // iOS permission if needed
     const maybeRequestPermission = async () => {
       try {
         const anyDM = (DeviceMotionEvent as any)
@@ -183,15 +183,60 @@ export default function TeamStepsArena() {
       return true
     }
 
-    let active = true
-    maybeRequestPermission().then((ok) => {
-      if (!ok || !active) return
-      window.addEventListener('devicemotion', handler)
-    })
+    let cleanup: (() => void) | null = null
+
+    const start = async () => {
+      // Try DeviceMotion first
+      if ('DeviceMotionEvent' in window) {
+        const ok = await maybeRequestPermission()
+        if (ok) {
+          window.addEventListener('devicemotion', dmHandler, { passive: true } as any)
+          dmActive = true
+          cleanup = () => window.removeEventListener('devicemotion', dmHandler)
+        }
+      }
+
+      // Also try Generic Sensor API if available (useful on Android Chrome)
+      const AnyAccel = (window as any).Accelerometer
+      if (AnyAccel) {
+        try {
+          const sensor = new AnyAccel({ frequency: 30 })
+          sensorRef.current = sensor
+          sensor.addEventListener('reading', () => {
+            if (!visibleRef.current) return
+            const ax = sensor.x || 0, ay = sensor.y || 0, az = sensor.z || 0
+            const m = Math.sqrt(ax*ax + ay*ay + az*az)
+            const g = m / 9.81
+            setCurrentG(g)
+            const now = Date.now()
+            const debounceOk = now - lastStepRef.current >= debounceMs
+            const crossedUp = lastBelowRef.current && g > sensitivityG
+            if (debounceOk && crossedUp) {
+              lastStepRef.current = now
+              lastBelowRef.current = false
+              onStep()
+            }
+            if (g < Math.max(1, sensitivityG - 0.15)) lastBelowRef.current = true
+          })
+          sensor.start()
+          const prevCleanup = cleanup
+          cleanup = () => {
+            try { sensor.stop() } catch {}
+            sensorRef.current = null
+            if (dmActive) window.removeEventListener('devicemotion', dmHandler)
+            if (prevCleanup && !dmActive) prevCleanup()
+          }
+        } catch {
+          // Sensor blocked by permissions-policy or insecure context
+        }
+      }
+    }
+
+    start()
 
     return () => {
-      active = false
-      window.removeEventListener('devicemotion', handler)
+      if (cleanup) cleanup()
+      else if (dmActive) window.removeEventListener('devicemotion', dmHandler)
     }
   }, [motionOn, sensitivityG, debounceMs, blip, fanfare, state.winnerId])
 
@@ -219,7 +264,7 @@ export default function TeamStepsArena() {
 
   const sorted = useMemo(() => state.runners.slice().sort((a,b) => b.steps - a.steps), [state.runners])
 
-  const motionSupported = typeof window !== 'undefined' && 'DeviceMotionEvent' in window
+  const motionSupported = typeof window !== 'undefined' && ('DeviceMotionEvent' in window || (window as any).Accelerometer)
 
   return (
     <section className="grid gap-4">

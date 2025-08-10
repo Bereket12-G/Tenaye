@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Responsive Design Test - Tenaye</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #f0f0f0;
+        }
+        .test-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        .viewport-info {
+            background: #667eea;
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .device-buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        .device-btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            background: #667eea;
+            color: white;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        .device-btn:hover {
+            background: #5a67d8;
+        }
+        .device-btn.active {
+            background: #4c51bf;
+        }
+        iframe {
+            width: 100%;
+            height: 600px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+        }
+        .breakpoint-info {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+        .breakpoint-info h3 {
+            margin-top: 0;
+            color: #333;
+        }
+        .breakpoint-list {
+            list-style: none;
+            padding: 0;
+        }
+        .breakpoint-list li {
+            padding: 5px 0;
+            border-bottom: 1px solid #eee;
+        }
+        .breakpoint-list li:last-child {
+            border-bottom: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>Responsive Design Test - Tenaye Website</h1>
+        
+        <div class="viewport-info">
+            <h2>Current Viewport: <span id="viewport-size">Loading...</span></h2>
+            <p>Device Type: <span id="device-type">Loading...</span></p>
+        </div>
+        
+        <div class="device-buttons">
+            <button class="device-btn" onclick="setViewport(320, 568)">Mobile (320px)</button>
+            <button class="device-btn" onclick="setViewport(375, 667)">Mobile Large (375px)</button>
+            <button class="device-btn" onclick="setViewport(768, 1024)">Tablet (768px)</button>
+            <button class="device-btn" onclick="setViewport(1024, 768)">Desktop (1024px)</button>
+            <button class="device-btn" onclick="setViewport(1440, 900)">Large Desktop (1440px)</button>
+            <button class="device-btn active" onclick="setViewport('100%', '100%')">Full Width</button>
+        </div>
+        
+        <iframe id="website-frame" src="index.html" title="Tenaye Website"></iframe>
+        
+        <div class="breakpoint-info">
+            <h3>Responsive Breakpoints Used:</h3>
+            <ul class="breakpoint-list">
+                <li><strong>Mobile First:</strong> Base styles for all screen sizes</li>
+                <li><strong>Tablet (768px+):</strong> 2-column layouts, larger typography</li>
+                <li><strong>Desktop (1024px+):</strong> 3-column layouts, full navigation</li>
+                <li><strong>Large Desktop (1440px+):</strong> Maximum container width, larger elements</li>
+            </ul>
+            
+            <h3>Key Responsive Features:</h3>
+            <ul class="breakpoint-list">
+                <li>✓ Mobile-first CSS approach</li>
+                <li>✓ Flexible grid layouts using CSS Grid</li>
+                <li>✓ Responsive typography that scales with viewport</li>
+                <li>✓ Mobile hamburger navigation</li>
+                <li>✓ Touch-friendly buttons and interactions</li>
+                <li>✓ Optimized images and icons for all screen sizes</li>
+                <li>✓ Smooth animations and transitions</li>
+                <li>✓ Accessibility features (focus states, keyboard navigation)</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        function setViewport(width, height) {
+            const iframe = document.getElementById('website-frame');
+            if (width === '100%') {
+                iframe.style.width = '100%';
+                iframe.style.height = '600px';
+            } else {
+                iframe.style.width = width + 'px';
+                iframe.style.height = height + 'px';
+            }
+            
+            // Update active button
+            document.querySelectorAll('.device-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            // Update viewport info
+            updateViewportInfo(width, height);
+        }
+        
+        function updateViewportInfo(width, height) {
+            const viewportSize = document.getElementById('viewport-size');
+            const deviceType = document.getElementById('device-type');
+            
+            if (width === '100%') {
+                viewportSize.textContent = 'Full Width';
+                deviceType.textContent = 'Dynamic';
+            } else {
+                viewportSize.textContent = `${width}px × ${height}px`;
+                
+                if (width < 768) {
+                    deviceType.textContent = 'Mobile';
+                } else if (width < 1024) {
+                    deviceType.textContent = 'Tablet';
+                } else {
+                    deviceType.textContent = 'Desktop';
+                }
+            }
+        }
+        
+        // Initialize with current window size
+        window.addEventListener('load', () => {
+            updateViewportInfo(window.innerWidth, window.innerHeight);
+        });
+        
+        // Update on window resize
+        window.addEventListener('resize', () => {
+            updateViewportInfo(window.innerWidth, window.innerHeight);
+        });
+    </script>
+</body>
+</html>

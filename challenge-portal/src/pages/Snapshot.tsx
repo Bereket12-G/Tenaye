@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 
 type Player = {
   id: string
+  userId?: string
   name: string
   emoji: string
   kindness: number
@@ -38,11 +39,10 @@ export default function SnapshotPage() {
     const map = new Map<string, Player>()
     for (const s of snapshots) {
       for (const p of s.players) {
-        const key = p.name + '_' + p.emoji
+        const key = p.userId ? `uid:${p.userId}` : `name:${p.name}|${p.emoji}`
         const prev = map.get(key)
         if (!prev) map.set(key, { ...p })
         else {
-          // Combine positively: take max streak, sum kindness/highFives
           map.set(key, {
             ...prev,
             kindness: prev.kindness + p.kindness,
@@ -80,7 +80,7 @@ export default function SnapshotPage() {
               <div className="w-8 text-slate-400">{idx + 1}</div>
               <div className="text-2xl">{p.emoji}</div>
               <div>
-                <div className="font-medium">{p.name}</div>
+                <div className="font-medium flex items-center gap-2">{p.name} {p.userId && <span className="text-xs p-muted">[{p.userId.slice(0,8)}]</span>}</div>
                 <div className="text-xs p-muted">{p.flair}</div>
               </div>
             </div>

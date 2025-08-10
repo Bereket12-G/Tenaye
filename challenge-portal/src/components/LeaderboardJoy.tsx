@@ -6,6 +6,7 @@ const STORAGE_KEY = 'leaderboard-joy-v1'
 
 type Player = {
   id: string
+  userId?: string
   name: string
   emoji: string
   kindness: number
@@ -86,8 +87,18 @@ export default function LeaderboardJoy() {
     URL.revokeObjectURL(url)
   }
 
+  function markAsMe(id: string) {
+    setPlayers((prev) => prev.map(p => p.id === id ? { ...p, userId: deviceId } : p))
+  }
+
+  function copyMyId() {
+    try { navigator.clipboard.writeText(deviceId) } catch {}
+  }
+
   const podium = sorted.slice(0,3)
   const others = sorted.slice(3)
+
+  const YouTag = ({ p }: { p: Player }) => p.userId === deviceId ? <span className="text-xs text-brand-400">(You)</span> : null
 
   return (
     <section className="grid gap-6">
@@ -95,6 +106,7 @@ export default function LeaderboardJoy() {
         <div>
           <h2 className="h2">Leaderboard of Good Vibes</h2>
           <p className="p-muted">Ranked by kindness points, gentle streaks, and high-five power. Pure positivity.</p>
+          <div className="text-xs p-muted mt-1">My ID: <span className="font-mono">{deviceId.slice(0,8)}</span> <button className="btn-outline px-2 py-0.5 ml-2" onClick={copyMyId}>Copy</button></div>
         </div>
         <div className="flex gap-2">
           <button className="btn-outline" onClick={reshuffle}>Refresh Demo</button>
@@ -111,7 +123,7 @@ export default function LeaderboardJoy() {
                 <div className="text-2xl" title="Emoji">{p.emoji}</div>
                 <div>
                   <div className="font-semibold flex items-center gap-2">
-                    {p.name}
+                    {p.name} <YouTag p={p} />
                     {idx === 0 && <span className="motion-safe:animate-pop">👑</span>}
                     {idx === 1 && <span className="motion-safe:animate-pop">🥈</span>}
                     {idx === 2 && <span className="motion-safe:animate-pop">🥉</span>}
@@ -119,7 +131,10 @@ export default function LeaderboardJoy() {
                   <div className="text-xs p-muted">{p.flair}</div>
                 </div>
               </div>
-              <button className="btn-outline" onClick={() => boost(p.id)}>+10 Kindness</button>
+              <div className="flex gap-2">
+                <button className="btn-outline" onClick={() => boost(p.id)}>+10 Kindness</button>
+                {p.userId === deviceId ? null : <button className="btn-outline" onClick={() => markAsMe(p.id)}>Set Me</button>}
+              </div>
             </div>
             <div className="mt-3 grid grid-cols-3 gap-2 text-center text-sm">
               <div className="rounded-md bg-slate-900/50 border border-slate-800 p-2">
@@ -146,7 +161,7 @@ export default function LeaderboardJoy() {
               <div className="w-8 text-slate-400">{i + 4}</div>
               <div className="text-2xl">{p.emoji}</div>
               <div>
-                <div className="font-medium">{p.name}</div>
+                <div className="font-medium flex items-center gap-2">{p.name} <YouTag p={p} /></div>
                 <div className="text-xs p-muted">{p.flair}</div>
               </div>
             </div>
@@ -154,7 +169,10 @@ export default function LeaderboardJoy() {
               <div className="text-sm"><span className="p-muted">Kindness</span> <span className="font-semibold text-brand-400">{p.kindness}</span></div>
               <div className="text-sm"><span className="p-muted">Streak</span> <span className="font-semibold">{p.streak}🔥</span></div>
               <div className="text-sm"><span className="p-muted">High-Fives</span> <span className="font-semibold">{p.highFives}</span></div>
-              <button className="btn-outline" onClick={() => highfive(p.id)}>High-Five</button>
+              <div className="flex gap-2">
+                <button className="btn-outline" onClick={() => highfive(p.id)}>High-Five</button>
+                {p.userId === deviceId ? null : <button className="btn-outline" onClick={() => markAsMe(p.id)}>Set Me</button>}
+              </div>
             </div>
           </div>
         ))}

@@ -100,33 +100,12 @@ function TeamsPage() {
   )
 }
 
+import LeaderboardJoy from './components/LeaderboardJoy'
+
 function LeaderboardPage() {
-  const users = [
-    { name: 'Ava', points: 920, streak: 12 },
-    { name: 'Ben', points: 880, streak: 8 },
-    { name: 'Kai', points: 860, streak: 15 },
-    { name: 'Mia', points: 780, streak: 6 },
-  ]
-  return <section className="grid gap-6">
-    <header>
-      <h2 className="h2">Leaderboard</h2>
-      <p className="p-muted">Consistency-weighted. Streak boosts points, resets penalize gently.</p>
-    </header>
-    <div className="card divide-y divide-slate-800">
-      {users.map((u, idx) => (
-        <div key={u.name} className="flex items-center justify-between py-3">
-          <div className="flex items-center gap-3">
-            <div className="w-8 text-slate-400">{idx + 1}</div>
-            <div className="font-medium">{u.name}</div>
-          </div>
-          <div className="flex items-center gap-6">
-            <span className="text-brand-400">{u.streak}🔥</span>
-            <span className="font-semibold">{u.points} XP</span>
-          </div>
-        </div>
-      ))}
-    </div>
-  </section>
+  return (
+    <LeaderboardJoy />
+  )
 }
 
 export default function AppRouter() {

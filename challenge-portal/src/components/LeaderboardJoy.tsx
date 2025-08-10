@@ -88,9 +88,9 @@ export default function LeaderboardJoy() {
                 <div>
                   <div className="font-semibold flex items-center gap-2">
                     {p.name}
-                    {idx === 0 && <span className="animate-pop">👑</span>}
-                    {idx === 1 && <span className="animate-pop">🥈</span>}
-                    {idx === 2 && <span className="animate-pop">🥉</span>}
+                    {idx === 0 && <span className="motion-safe:animate-pop">👑</span>}
+                    {idx === 1 && <span className="motion-safe:animate-pop">🥈</span>}
+                    {idx === 2 && <span className="motion-safe:animate-pop">🥉</span>}
                   </div>
                   <div className="text-xs p-muted">{p.flair}</div>
                 </div>

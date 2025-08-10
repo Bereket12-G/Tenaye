@@ -114,8 +114,8 @@ export default function ProgressPlayground() {
           <div className="text-sm text-slate-300">{pct}% • {loggedCount}/{target} logs</div>
         </div>
         <div className="relative h-6 rounded-full bg-slate-800 overflow-hidden">
-          <div className="absolute inset-0 opacity-40 bg-[length:1rem_1rem] bg-[linear-gradient(45deg,rgba(255,255,255,0.2)_25%,transparent_25%,transparent_50%,rgba(255,255,255,0.2)_50%,rgba(255,255,255,0.2)_75%,transparent_75%,transparent)] animate-barberpole" />
-          <div className="relative h-full rounded-full bg-gradient-to-r from-brand-400 to-brand-600 animate-jiggle" style={{ width: `${pct}%` }} />
+          <div className="absolute inset-0 opacity-40 bg-[length:1rem_1rem] bg-[linear-gradient(45deg,rgba(255,255,255,0.2)_25%,transparent_25%,transparent_50%,rgba(255,255,255,0.2)_50%,rgba(255,255,255,0.2)_75%,transparent_75%,transparent)] motion-safe:animate-barberpole" />
+          <div className="relative h-full rounded-full bg-gradient-to-r from-brand-400 to-brand-600 motion-safe:animate-jiggle" style={{ width: `${pct}%` }} />
         </div>
         <div className="mt-3 text-sm text-brand-400">{headerMsg}</div>
       </div>
@@ -143,7 +143,7 @@ export default function ProgressPlayground() {
                 title={d ? d.toDateString() : ''}
               >
                 {d ? (
-                  logs[toKey(d)] ? <span className="animate-pop text-lg">{logs[toKey(d)]}</span> : <span className="text-slate-500">＋</span>
+                  logs[toKey(d)] ? <span className="motion-safe:animate-pop text-lg">{logs[toKey(d)]}</span> : <span className="text-slate-500">＋</span>
                 ) : null}
               </button>
             ))

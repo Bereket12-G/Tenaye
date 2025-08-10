@@ -68,6 +68,20 @@ export default function TeamStudio() {
   useEffect(() => { try { localStorage.setItem(STORAGE_TEAMS, JSON.stringify(teams)) } catch {} }, [teams])
   useEffect(() => { try { localStorage.setItem(STORAGE_MEMBER, JSON.stringify(myMembership)) } catch {} }, [myMembership])
 
+  // Auto-join via URL ?joinTeam=ID
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    const joinTeam = params.get('joinTeam')
+    if (joinTeam) {
+      setMyMembership((prev) => ({ ...prev, [joinTeam]: true }))
+      setTeams((cur) => cur.map((t) => t.id === joinTeam ? { ...t, members: t.members + 1 } : t))
+      params.delete('joinTeam')
+      const url = new URL(window.location.href)
+      url.search = params.toString()
+      window.history.replaceState({}, '', url.toString())
+    }
+  }, [])
+
   // Create form
   const [name, setName] = useState<string>(randomName())
   const [emoji, setEmoji] = useState<string>(randomEmoji())
@@ -132,9 +146,10 @@ export default function TeamStudio() {
   }
 
   const copyInvite = async (teamId: string) => {
-    const code = teamId.split('-')[0].toUpperCase()
+    const url = new URL(window.location.href)
+    url.searchParams.set('joinTeam', teamId)
     try {
-      await navigator.clipboard.writeText(`Join ${teams.find(t=>t.id===teamId)?.name} with code: ${code}`)
+      await navigator.clipboard.writeText(url.toString())
     } catch {}
   }
 

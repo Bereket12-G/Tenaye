@@ -7,8 +7,8 @@ export default function LandingPage() {
         <h1 className="h1">Level up with challenges</h1>
         <p className="p-muted max-w-2xl">Pick weekly challenges, track your momentum, collaborate in groups, and climb the community leaderboard. Everything here runs in your browser.</p>
         <div className="flex gap-3">
-          <NavLink to="/challenges" className="btn">Browse Challenges</NavLink>
-          <NavLink to="/progress" className="btn-outline">Track Progress</NavLink>
+          <NavLink to="/onboarding" className="btn">Get Started</NavLink>
+          <NavLink to="/challenges" className="btn-outline">Browse Challenges</NavLink>
         </div>
       </div>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">

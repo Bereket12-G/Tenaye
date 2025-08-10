@@ -195,7 +195,7 @@ export default function TeamStepsArena() {
                 <div className="relative h-8 rounded-full bg-slate-800 overflow-hidden">
                   <div className={`absolute inset-y-0 left-0 bg-gradient-to-r ${theme.bar}`} style={{ width: pct + '%' }} />
                   <div className="absolute inset-y-0 left-0 flex items-center" style={{ transform: `translateX(${pct}%)` }}>
-                    <span className="-translate-x-1/2 text-lg animate-pop" title="Foot">{r.emoji}</span>
+                    <span className="-translate-x-1/2 text-lg motion-safe:animate-pop" title="Foot">{r.emoji}</span>
                   </div>
                 </div>
               </div>

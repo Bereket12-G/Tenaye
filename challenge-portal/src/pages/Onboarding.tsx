@@ -13,13 +13,38 @@ export default function OnboardingPage() {
   const { confetti } = useConfetti()
 
   const [step, setStep] = useState(1)
-  const [challengeId, setChallengeId] = useState<string>(() => localStorage.getItem(STORAGE.challenge) || CHALLENGES[0].id)
-  const [teamName, setTeamName] = useState<string>(() => localStorage.getItem(STORAGE.team) || '')
+  const [challengeId, setChallengeId] = useState<string>(() => {
+    try {
+      return localStorage.getItem(STORAGE.challenge) || CHALLENGES[0].id
+    } catch {
+      return CHALLENGES[0].id
+    }
+  })
+  const [teamName, setTeamName] = useState<string>(() => {
+    try {
+      return localStorage.getItem(STORAGE.team) || ''
+    } catch {
+      return ''
+    }
+  })
 
   const challenge = useMemo(() => CHALLENGES.find(c => c.id === challengeId)!, [challengeId])
 
-  useEffect(() => { try { localStorage.setItem(STORAGE.challenge, challengeId) } catch {} }, [challengeId])
-  useEffect(() => { try { localStorage.setItem(STORAGE.team, teamName) } catch {} }, [teamName])
+  useEffect(() => { 
+    try { 
+      localStorage.setItem(STORAGE.challenge, challengeId) 
+    } catch {
+      // Handle localStorage errors silently
+    }
+  }, [challengeId])
+  
+  useEffect(() => { 
+    try { 
+      localStorage.setItem(STORAGE.team, teamName) 
+    } catch {
+      // Handle localStorage errors silently
+    }
+  }, [teamName])
 
   function next() { setStep((s) => Math.min(3, s + 1)) }
   function prev() { setStep((s) => Math.max(1, s - 1)) }
@@ -33,7 +58,9 @@ export default function OnboardingPage() {
       const logs = raw ? JSON.parse(raw) : {}
       if (!logs[key]) logs[key] = '🎉'
       localStorage.setItem(LOG_KEY, JSON.stringify(logs))
-    } catch {}
+    } catch {
+      // Handle localStorage errors silently
+    }
     confetti()
     navigate('/progress')
   }
@@ -75,7 +102,7 @@ export default function OnboardingPage() {
       {step === 3 && (
         <div className="card grid gap-3">
           <div className="font-medium">Step 3 — First micro-win</div>
-          <div className="text-sm p-muted">We’ll log a celebratory emoji for today to start your streak. You can change it later.</div>
+          <div className="text-sm p-muted">We'll log a celebratory emoji for today to start your streak. You can change it later.</div>
           <div className="flex gap-2">
             <button className="btn-outline" onClick={prev}>Back</button>
             <button className="btn" onClick={finish}>Finish & Celebrate</button>

@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from 'react'
 const STORAGE_POSTS = 'community-board-posts-v1'
 const STORAGE_PROFILE = 'community-board-profile-v1'
 
-const AVATAR_EMOJIS = ['🦄','🐙','🐝','🐢','🐼','🦊','🐸','🦖','🐧','🐨','🐤','🐵','🦔','🦚','🦥','🐶','🐱']
+const AVATAR_EMOJIS = ['🦄','🐝','🐢','🐼','🦊','🐧']
 const REACTIONS = ['😂','💪','🌟','🫶'] as const
 
 type ReactionKey = typeof REACTIONS[number]
@@ -40,7 +40,7 @@ function generateFlair(keywords: string): string {
   const vibes = ['Zen','Sparkly','Turbo','Cozy','Chaotic','Wholesome','Sneaky','Glorious','Giggle','Cosmic']
   const nouns = ['Noodle','Ninja','Walrus','Wizard','Tornado','Muffin','Comet','Yogi','Disco','Koala']
   const extras = ['of Joy','of Calm','of Snacks','of Chaos','of Vibes','of Sunshine','of Shenanigans']
-  const emojis = ['✨','🍩','🌈','🧘','🎉','🪩','🍉','🫠','🦄','🐸']
+  const emojis = ['✨','🌈','🧘','🎉','💪']
   const kw = keywords.trim()
   const kwPart = kw ? ` ${kw.split(/[\,\s]+/).filter(Boolean)[0]}` : ''
   return `${pick(vibes)} ${pick(nouns)}${kwPart} ${pick(extras)} ${pick(emojis)}`
@@ -167,7 +167,7 @@ export default function CommunityBoard() {
           <div className="flex gap-2 items-center">
             <span className="text-sm p-muted">Mood</span>
             <div className="flex gap-1">
-              {['🧘','🕺','😴','🤸','😂','😎','🤓','🤗','🥳','🌈','☕️','🍵'].map((m) => (
+              {['🧘','😄','🌈','🎉','💪'].map((m) => (
                 <button key={m} onClick={() => setMood(m)} className={`px-2 py-1 rounded ${mood===m?'bg-slate-800':'hover:bg-slate-800/60'}`}>{m}</button>
               ))}
             </div>
@@ -230,7 +230,7 @@ export default function CommunityBoard() {
 function CommentBox({ onAdd }: { onAdd: (text: string) => void }) {
   const [text, setText] = useState('')
   const [pickEmoji, setPickEmoji] = useState('')
-  const emojis = ['😄','💡','🙌','🔥','🍪','🫶','🌟','🦄','🎉','🧘']
+  const emojis = ['😄','🫶','🌟','🎉','🧘']
   const add = () => {
     const t = (pickEmoji ? pickEmoji + ' ' : '') + text.trim()
     if (!t) return

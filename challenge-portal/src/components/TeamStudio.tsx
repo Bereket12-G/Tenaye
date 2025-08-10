@@ -13,7 +13,7 @@ const COLOR_THEMES = [
   { id: 'lime', dot: 'bg-lime-500', badge: 'bg-lime-600/20 text-lime-300 border-lime-700', btn: 'bg-lime-600 hover:bg-lime-700' },
 ]
 
-const EMOJIS = ['🦄','🍩','🦖','🐸','🧘','🪩','🐢','🐝','🐧','🌈','🔥','✨','🍉','🥑','🦥']
+const EMOJIS = ['🧘','🐢','🐝','🐧','🌈','✨']
 const ADJECTIVES = ['Giggly','Zen','Turbo','Sparkly','Sleepy','Wobbly','Lo-Fi','Sassy','Wholesome','Chaotic','Banana','Cosmic','Mighty','Curious','Bouncy']
 const NOUNS = ['Walruses','Wombats','Unicorns','Muffins','Disco Ducks','Yogis','Noodles','Otters','Koalas','Pickles','Cupcakes','Penguins','Koalas','Llamas','Otters']
 const CHANTS = [

@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 
 const STORAGE_KEY = 'progress-playground-logs-v1'
 
-const FUN_ICONS = ['🍌','🦄','🫠','🕺','🧠','🌈','🍩','💃','🪩','🦖','🪄','🍉','🐸','✨','🧘']
+const FUN_ICONS = ['✨','🌈','🧘','🎉','💪']
 
 function randomIcon() {
   return FUN_ICONS[Math.floor(Math.random() * FUN_ICONS.length)]

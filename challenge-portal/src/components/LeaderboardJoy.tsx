@@ -21,7 +21,7 @@ type Snapshot = {
   players: Player[]
 }
 
-const EMOJIS = ['🌈','✨','🦄','🍩','🍉','🐸','🧘','🎉','🪩','💫','🌟','🥑']
+const EMOJIS = ['🌈','✨','🧘','🎉','🌟']
 const ADJ = ['Glowy','Kind','Cheery','Cozy','Sparkly','Sunny','Gentle','Brave','Radiant','Zesty']
 const NOUN = ['Koala','Captain','Wizard','Pinecone','Noodle','Otter','Muffin','Firefly','Panda','Cactus']
 const PRAISE = ['Radiates kindness','Spreads good vibes','Shares high-fives','Cheer captain','Joy distributor','Streak superstar']
@@ -36,7 +36,7 @@ function seedPlayers(): Player[] {
   return base.map((n) => ({
     id: crypto.randomUUID(),
     name: `${n} · ${makeName()}`,
-    emoji: pick(['😄','🦄','🐝','🐢','🐼','🦊','🐸','🦖','🐧','🐨']),
+    emoji: pick(['😄','🐝','🐢','🐼','🦊','🐧']),
     kindness: Math.floor(600 + Math.random()*500),
     streak: Math.floor(1 + Math.random()*15),
     highFives: Math.floor(10 + Math.random()*100),

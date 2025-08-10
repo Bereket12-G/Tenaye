@@ -93,79 +93,133 @@ export default function ProgressPlayground() {
       : 'Tiny steps, big smiles. Your future self is already proud.'
 
   return (
-    <section className="grid gap-6">
-      <header className="flex items-center justify-between gap-4 flex-wrap">
-        <div>
+    <section className="space-responsive">
+      <header className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div className="space-y-2">
           <h2 className="h2">Progress Playground</h2>
-          <p className="p-muted">Log your antics, earn goofy badges, and watch the silliness meter rise.</p>
+          <p className="p-muted max-w-2xl">Log your antics, earn goofy badges, and watch the silliness meter rise.</p>
         </div>
         <div className="flex items-center gap-2">
-          <button className="btn-outline" onClick={() => setMonth(new Date(month.getFullYear(), month.getMonth() - 1, 1))}>← Prev</button>
-          <div className="text-sm text-slate-300 w-32 text-center">
-            {month.toLocaleString(undefined, { month: 'long', year: 'numeric' })}
-          </div>
-          <button className="btn-outline" onClick={() => setMonth(new Date(month.getFullYear(), month.getMonth() + 1, 1))}>Next →</button>
+          <button 
+            onClick={() => setMonth(new Date(month.getFullYear(), month.getMonth() - 1))}
+            className="btn-outline touch-friendly"
+          >
+            ←
+          </button>
+          <span className="px-4 py-2 text-sm font-medium">
+            {month.toLocaleDateString(undefined, { month: 'long', year: 'numeric' })}
+          </span>
+          <button 
+            onClick={() => setMonth(new Date(month.getFullYear(), month.getMonth() + 1))}
+            className="btn-outline touch-friendly"
+          >
+            →
+          </button>
         </div>
       </header>
 
-      <div className="card">
-        <div className="flex items-center justify-between mb-2">
-          <div className="font-medium">Silliness Meter</div>
-          <div className="text-sm text-slate-300">{pct}% • {loggedCount}/{target} logs</div>
-        </div>
-        <div className="relative h-6 rounded-full bg-slate-800 overflow-hidden">
-          <div className="absolute inset-0 opacity-40 bg-[length:1rem_1rem] bg-[linear-gradient(45deg,rgba(255,255,255,0.2)_25%,transparent_25%,transparent_50%,rgba(255,255,255,0.2)_50%,rgba(255,255,255,0.2)_75%,transparent_75%,transparent)] motion-safe:animate-barberpole" />
-          <div className="relative h-full rounded-full bg-gradient-to-r from-brand-400 to-brand-600 motion-safe:animate-jiggle" style={{ width: `${pct}%` }} />
-        </div>
-        <div className="mt-3 text-sm text-brand-400">{headerMsg}</div>
-      </div>
-
-      <div className="card">
-        <div className="mb-3 font-medium">Log your days</div>
-        <div className="grid grid-cols-7 gap-2 text-center text-xs text-slate-400 mb-2">
-          {['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].map((d) => <div key={d}>{d}</div>)}
-        </div>
-        <div className="grid grid-cols-7 gap-2">
-          {monthWeeks.map((week, wi) => (
-            week.map((d, di) => (
-              <button
-                key={`${wi}-${di}`}
-                disabled={!d}
-                onClick={() => d && addLog(d)}
-                className={
-                  'aspect-square rounded-lg border flex items-center justify-center select-none transition ' +
-                  (!d
-                    ? 'opacity-0 pointer-events-none'
-                    : logs[toKey(d)]
-                      ? 'border-brand-700 bg-slate-900 text-base'
-                      : 'border-slate-800 bg-slate-900/40 hover:bg-slate-800/60')
-                }
-                title={d ? d.toDateString() : ''}
-              >
-                {d ? (
-                  logs[toKey(d)] ? <span className="motion-safe:animate-pop text-lg">{logs[toKey(d)]}</span> : <span className="text-slate-500">＋</span>
-                ) : null}
-              </button>
-            ))
-          ))}
-        </div>
-      </div>
-
-      <div className="grid gap-3">
-        <div className="font-medium">Badges</div>
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {badges.length === 0 && (
-            <div className="p-muted text-sm">Earn badges by logging days and building streaks. Your first badge is just one tap away.</div>
-          )}
-          {badges.map((b) => (
-            <div key={b.name} className="card flex items-center gap-3">
-              <div className="text-2xl">{b.icon}</div>
+      <div className="grid gap-6 lg:grid-cols-3">
+        <div className="lg:col-span-2 space-y-6">
+          <div className="card space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               <div>
-                <div className="font-semibold">{b.name}</div>
-                <div className="text-sm p-muted">{b.desc}</div>
+                <div className="text-2xl font-bold">{loggedCount}/{target}</div>
+                <div className="text-sm p-muted">Days logged this month</div>
+              </div>
+              <div className="text-right">
+                <div className="text-2xl font-bold">{streak}</div>
+                <div className="text-sm p-muted">Day streak</div>
               </div>
             </div>
-          ))}
+            <div className="space-y-2">
+              <div className="flex justify-between text-sm">
+                <span>Progress</span>
+                <span>{pct}%</span>
+              </div>
+              <div className="w-full bg-slate-800 rounded-full h-3 overflow-hidden">
+                <div 
+                  className="h-full bg-gradient-to-r from-brand-500 to-brand-400 transition-all duration-500 ease-out"
+                  style={{ width: `${pct}%` }}
+                />
+              </div>
+            </div>
+            <p className="text-sm text-slate-300 leading-relaxed">{headerMsg}</p>
+          </div>
+
+          <div className="card space-y-4">
+            <h3 className="font-semibold text-lg">Calendar</h3>
+            <div className="space-y-2">
+              <div className="grid grid-cols-7 gap-1 text-xs text-slate-400 mb-2">
+                {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day) => (
+                  <div key={day} className="text-center py-1">{day}</div>
+                ))}
+              </div>
+              {monthWeeks.map((week, i) => (
+                <div key={i} className="grid grid-cols-7 gap-1">
+                  {week.map((date, j) => (
+                    <button
+                      key={j}
+                      onClick={() => date && addLog(date)}
+                      disabled={!date}
+                      className={`
+                        aspect-square rounded-md text-sm font-medium transition-all duration-200 touch-friendly
+                        ${!date ? 'invisible' : ''}
+                        ${date && logs[toKey(date)] 
+                          ? 'bg-brand-500 text-white shadow-sm hover:bg-brand-600 active:scale-95' 
+                          : 'bg-slate-800/50 text-slate-300 hover:bg-slate-700/50 active:scale-95'
+                        }
+                        ${date && date.toDateString() === new Date().toDateString() 
+                          ? 'ring-2 ring-brand-400' 
+                          : ''
+                        }
+                      `}
+                    >
+                      {date && logs[toKey(date)] ? logs[toKey(date)] : date?.getDate()}
+                    </button>
+                  ))}
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <div className="space-y-6">
+          <div className="card space-y-4">
+            <h3 className="font-semibold text-lg">Badges Earned</h3>
+            {badges.length === 0 ? (
+              <p className="text-sm p-muted">Complete challenges to earn badges!</p>
+            ) : (
+              <div className="space-y-3">
+                {badges.map((badge, i) => (
+                  <div key={i} className="flex items-start gap-3 p-3 rounded-lg bg-slate-800/30">
+                    <div className="text-2xl">{badge.icon}</div>
+                    <div>
+                      <div className="font-medium text-sm">{badge.name}</div>
+                      <div className="text-xs p-muted leading-relaxed">{badge.desc}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <div className="card space-y-4">
+            <h3 className="font-semibold text-lg">Quick Actions</h3>
+            <div className="space-y-2">
+              <button 
+                onClick={() => addLog(new Date())}
+                className="w-full btn"
+              >
+                Log Today's Progress
+              </button>
+              <button 
+                onClick={() => setLogs({})}
+                className="w-full btn-outline"
+              >
+                Reset All Logs
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </section>

@@ -13,6 +13,15 @@ html, body, #root {
 
 body {
   @apply bg-slate-900 text-slate-100 antialiased;
+  /* Improve touch scrolling on mobile */
+  -webkit-overflow-scrolling: touch;
+  /* Prevent zoom on input focus on iOS */
+  touch-action: manipulation;
+}
+
+/* Improve focus styles for accessibility */
+*:focus-visible {
+  @apply outline-none ring-2 ring-brand-500 ring-offset-2 ring-offset-slate-900;
 }
 
 .container-page {
@@ -20,22 +29,92 @@ body {
 }
 
 .btn {
-  @apply inline-flex items-center justify-center gap-2 rounded-md bg-brand-500 px-4 py-2 text-white font-medium shadow-sm hover:bg-brand-600 active:translate-y-px transition;
+  @apply inline-flex items-center justify-center gap-2 rounded-md bg-brand-500 px-4 py-2 text-white font-medium shadow-sm hover:bg-brand-600 active:translate-y-px transition-all duration-200 touch-manipulation;
+  /* Improve touch targets on mobile */
+  min-height: 44px;
 }
 
 .btn-outline {
-  @apply inline-flex items-center justify-center gap-2 rounded-md border border-slate-700 px-4 py-2 text-slate-100 hover:bg-slate-800/50 transition;
+  @apply inline-flex items-center justify-center gap-2 rounded-md border border-slate-700 px-4 py-2 text-slate-100 hover:bg-slate-800/50 transition-all duration-200 touch-manipulation;
+  /* Improve touch targets on mobile */
+  min-height: 44px;
 }
 
 .card {
-  @apply rounded-xl border border-slate-800 bg-slate-900/60 p-4 shadow-sm;
+  @apply rounded-xl border border-slate-800 bg-slate-900/60 p-4 sm:p-6 shadow-sm backdrop-blur-sm;
 }
 
-.h1 { @apply text-3xl sm:text-4xl font-semibold tracking-tight; }
-.h2 { @apply text-2xl sm:text-3xl font-semibold tracking-tight; }
+.h1 { @apply text-2xl sm:text-3xl md:text-4xl font-semibold tracking-tight leading-tight; }
+.h2 { @apply text-xl sm:text-2xl md:text-3xl font-semibold tracking-tight leading-tight; }
 .p-muted { @apply text-slate-400; }
+
+/* Responsive text utilities */
+.text-responsive-sm { @apply text-xs sm:text-sm; }
+.text-responsive-base { @apply text-sm sm:text-base; }
+.text-responsive-lg { @apply text-base sm:text-lg; }
+
+/* Responsive spacing utilities */
+.space-responsive { @apply space-y-4 sm:space-y-6; }
+.gap-responsive { @apply gap-3 sm:gap-4; }
+
+/* Touch-friendly interactive elements */
+.touch-friendly {
+  @apply touch-manipulation;
+  min-height: 44px;
+  min-width: 44px;
+}
+
+/* Smooth scrolling for better UX */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Better mobile form inputs */
+input, textarea, select {
+  @apply touch-manipulation;
+  font-size: 16px; /* Prevents zoom on iOS */
+}
+
+/* Improved button states */
+.btn:active, .btn-outline:active {
+  @apply scale-95;
+}
+
+/* Better mobile navigation */
+@media (max-width: 768px) {
+  .container-page {
+    @apply px-4;
+  }
+  
+  .card {
+    @apply p-4;
+  }
+}
 
 @keyframes confetti-fall {
   from { transform: translateY(-10vh) rotate(0deg); opacity: 1; }
   to { transform: translateY(110vh) rotate(360deg); opacity: 0.9; }
+}
+
+/* Loading states */
+.loading {
+  @apply animate-pulse bg-slate-800/50;
+}
+
+/* Improved scrollbar for webkit browsers */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-slate-800;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-slate-600 rounded-full;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-slate-500;
 }

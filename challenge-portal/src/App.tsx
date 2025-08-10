@@ -84,28 +84,12 @@ function ProgressPage() {
   )
 }
 
+import CommunityBoard from './components/CommunityBoard'
+
 function CommunityPage() {
-  return <section className="grid gap-6">
-    <header>
-      <h2 className="h2">Community</h2>
-      <p className="p-muted">Share wins, ask for help, and celebrate streaks.</p>
-    </header>
-    <div className="space-y-4">
-      {[1,2,3].map((p) => (
-        <article key={p} className="card">
-          <div className="flex items-center justify-between">
-            <div className="font-medium">@user{p}</div>
-            <span className="text-xs p-muted">2h ago</span>
-          </div>
-          <p className="mt-2">Day {p} of my 7-day focus sprint. Feeling good!</p>
-          <div className="mt-3 flex gap-2">
-            <button className="btn-outline">Applaud</button>
-            <button className="btn-outline">Reply</button>
-          </div>
-        </article>
-      ))}
-    </div>
-  </section>
+  return (
+    <CommunityBoard />
+  )
 }
 
 function TeamsPage() {

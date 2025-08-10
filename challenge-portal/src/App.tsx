@@ -92,30 +92,12 @@ function CommunityPage() {
   )
 }
 
+import TeamStudio from './components/TeamStudio'
+
 function TeamsPage() {
-  return <section className="grid gap-6">
-    <header className="flex items-center justify-between">
-      <div>
-        <h2 className="h2">Teams & Groups</h2>
-        <p className="p-muted">Form squads, coordinate sprints, and keep momentum.</p>
-      </div>
-      <button className="btn">Create Team</button>
-    </header>
-    <div className="grid gap-4 md:grid-cols-2">
-      {[{ name: 'Early Birds', members: 8 }, { name: 'Night Owls', members: 6 }].map((team) => (
-        <article key={team.name} className="card">
-          <div className="flex items-center justify-between">
-            <div>
-              <h3 className="font-semibold">{team.name}</h3>
-              <p className="p-muted text-sm">{team.members} members</p>
-            </div>
-            <button className="btn-outline">Join</button>
-          </div>
-          <div className="mt-3 text-sm p-muted">Next sprint: Mon → Sun</div>
-        </article>
-      ))}
-    </div>
-  </section>
+  return (
+    <TeamStudio />
+  )
 }
 
 function LeaderboardPage() {

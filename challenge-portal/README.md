@@ -1,38 +1,54 @@
-# Challenge Portal (Frontend-only)
+# Challenge Portal
 
-Playful wellness platform with challenges, progress, community, teams, and a fun steps arena. Local-first, no backend.
-
-## Run locally
-
-- npm install
-- npm run dev
-
-## Production build
-
-- npm run build
-- npm run preview
-
-## Deploy options
-
-- Netlify: uses `netlify.toml` (SPA redirects, cache headers). Set build command `npm run build`, publish `dist/`.
-- Vercel: `vercel.json` rewrites all routes to `index.html`.
-- GitHub Pages: run `npm run build` then serve `dist/`; `postbuild` copies `404.html` for SPA fallback.
-- Docker (Nginx):
-  - docker build -t challenge-portal .
-  - docker run -p 8080:80 challenge-portal
-  - open http://localhost:8080
+A playful wellness platform with challenges, progress tracking, community features, teams, and leaderboards. Built as a local-first application with no backend required.
 
 ## Features
 
-- Challenges with categories
-- Progress Playground with emoji calendar, badges, animations
-- Community Board with emoji avatars, flair generator, reactions, search/sort, reset demo
-- Teams Studio with silly name/chant generators, color themes, search/sort, invite links, auto-join
-- Footsteps Arena with WebAudio blips and fanfare
-- Leaderboard of Good Vibes
-- Party Mode and onboarding flow
-- PWA basics (manifest + service worker)
+- **Challenges**: Wellness challenges with categories and progress tracking
+- **Progress Playground**: Interactive calendar with emoji logging, badges, and animations
+- **Community Board**: Social features with emoji avatars, flair generator, reactions, and search
+- **Teams Studio**: Team management with name generators, color themes, and invite links
+- **Leaderboard**: Gamified progress tracking with good vibes
+- **Party Mode**: Fun animations and onboarding flow
+- **PWA Ready**: Progressive Web App with manifest and responsive design
+
+## Quick Start
+
+```bash
+# Install dependencies
+npm install
+
+# Start development server
+npm run dev
+
+# Build for production
+npm run build
+
+# Preview production build
+npm run preview
+```
+
+## Development
+
+- **Framework**: React 19 with TypeScript
+- **Styling**: Tailwind CSS with custom responsive utilities
+- **Routing**: React Router DOM
+- **Build Tool**: Vite
+- **State Management**: Local state with React hooks
+- **Storage**: LocalStorage for data persistence
 
 ## Privacy
 
-LocalStorage only; no server or account needed.
+All data is stored locally in the browser using LocalStorage. No server communication or user accounts required.
+
+## Responsive Design
+
+The application is fully responsive and optimized for:
+- Mobile phones (320px+)
+- Tablets (768px+)
+- Desktop (1024px+)
+- Large screens (1600px+)
+
+## License
+
+Built for exploration and wellness. Feel free to use and modify for your own projects.

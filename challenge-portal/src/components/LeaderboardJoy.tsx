@@ -1,4 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
+import { Link } from 'react-router-dom'
+import { useDeviceId } from '../hooks/useDeviceId'
 
 const STORAGE_KEY = 'leaderboard-joy-v1'
 
@@ -10,6 +12,12 @@ type Player = {
   streak: number
   highFives: number
   flair: string
+}
+
+type Snapshot = {
+  deviceId: string
+  capturedAt: number
+  players: Player[]
 }
 
 const EMOJIS = ['🌈','✨','🦄','🍩','🍉','🐸','🧘','🎉','🪩','💫','🌟','🥑']
@@ -36,6 +44,7 @@ function seedPlayers(): Player[] {
 }
 
 export default function LeaderboardJoy() {
+  const deviceId = useDeviceId()
   const [players, setPlayers] = useState<Player[]>(() => {
     try {
       const raw = localStorage.getItem(STORAGE_KEY)
@@ -64,6 +73,19 @@ export default function LeaderboardJoy() {
 
   const reshuffle = () => setPlayers(seedPlayers())
 
+  function exportSnapshot() {
+    const snap: Snapshot = { deviceId, capturedAt: Date.now(), players }
+    const blob = new Blob([JSON.stringify(snap, null, 2)], { type: 'application/json' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `leaderboard-${deviceId.slice(0,8)}.json`
+    document.body.appendChild(a)
+    a.click()
+    a.remove()
+    URL.revokeObjectURL(url)
+  }
+
   const podium = sorted.slice(0,3)
   const others = sorted.slice(3)
 
@@ -76,6 +98,8 @@ export default function LeaderboardJoy() {
         </div>
         <div className="flex gap-2">
           <button className="btn-outline" onClick={reshuffle}>Refresh Demo</button>
+          <button className="btn" onClick={exportSnapshot}>Export Snapshot</button>
+          <Link to="/snapshot" className="btn-outline">Open Snapshot Leaderboard</Link>
         </div>
       </header>
 

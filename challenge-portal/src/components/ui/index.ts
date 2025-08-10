@@ -6,4 +6,3 @@ export { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter }
 // Re-export types
 export type { ButtonProps } from './Button'
 export type { InputProps } from './Input'
-export type { CardProps, CardHeaderProps, CardTitleProps, CardDescriptionProps, CardContentProps, CardFooterProps } from './Card'

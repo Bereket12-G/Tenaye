@@ -7,7 +7,7 @@ import { APP_CONFIG } from './constants'
 
 export interface AnalyticsEvent {
   name: string
-  properties?: Record<string, any>
+  properties?: Record<string, unknown>
   timestamp: number
   userId?: string
   sessionId: string
@@ -50,7 +50,7 @@ class Analytics {
   /**
    * Track a custom event
    */
-  track(eventName: string, properties?: Record<string, any>): void {
+  track(eventName: string, properties?: Record<string, unknown>): void {
     if (!this.config.enabled) return
 
     const event: AnalyticsEvent = {
@@ -81,7 +81,7 @@ class Analytics {
   /**
    * Track user interaction
    */
-  trackInteraction(element: string, action: string, properties?: Record<string, any>): void {
+  trackInteraction(element: string, action: string, properties?: Record<string, unknown>): void {
     this.track('interaction', {
       element,
       action,
@@ -92,7 +92,7 @@ class Analytics {
   /**
    * Track challenge events
    */
-  trackChallengeEvent(action: string, challengeId: string, properties?: Record<string, any>): void {
+  trackChallengeEvent(action: string, challengeId: string, properties?: Record<string, unknown>): void {
     this.track('challenge_event', {
       action,
       challenge_id: challengeId,
@@ -103,7 +103,7 @@ class Analytics {
   /**
    * Track progress events
    */
-  trackProgressEvent(action: string, properties?: Record<string, any>): void {
+  trackProgressEvent(action: string, properties?: Record<string, unknown>): void {
     this.track('progress_event', {
       action,
       ...properties
@@ -113,7 +113,7 @@ class Analytics {
   /**
    * Track community events
    */
-  trackCommunityEvent(action: string, properties?: Record<string, any>): void {
+  trackCommunityEvent(action: string, properties?: Record<string, unknown>): void {
     this.track('community_event', {
       action,
       ...properties
@@ -123,7 +123,7 @@ class Analytics {
   /**
    * Track team events
    */
-  trackTeamEvent(action: string, teamId: string, properties?: Record<string, any>): void {
+  trackTeamEvent(action: string, teamId: string, properties?: Record<string, unknown>): void {
     this.track('team_event', {
       action,
       team_id: teamId,
@@ -134,7 +134,7 @@ class Analytics {
   /**
    * Track error events
    */
-  trackError(error: Error, context?: Record<string, any>): void {
+  trackError(error: Error, context?: Record<string, unknown>): void {
     this.track('error', {
       message: error.message,
       stack: error.stack,

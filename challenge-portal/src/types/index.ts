@@ -164,14 +164,14 @@ export interface PerformanceMetrics {
 export interface AppError {
   code: string
   message: string
-  details?: any
+  details?: unknown
   timestamp: number
 }
 
 // Event Types
 export interface AppEvent {
   type: string
-  data: any
+  data: unknown
   timestamp: number
   userId?: string
 }
@@ -190,10 +190,10 @@ export interface FormField {
   name: string
   label: string
   type: 'text' | 'email' | 'password' | 'number' | 'textarea' | 'select' | 'checkbox' | 'radio'
-  value: any
+  value: unknown
   required?: boolean
   validation?: ValidationRule[]
-  options?: { label: string; value: any }[]
+  options?: { label: string; value: unknown }[]
   placeholder?: string
   helperText?: string
 }
@@ -207,7 +207,7 @@ export interface FormState {
 }
 
 // API Types (for future use)
-export interface ApiResponse<T = any> {
+export interface ApiResponse<T = unknown> {
   data: T
   success: boolean
   message?: string
@@ -223,7 +223,7 @@ export interface ApiResponse<T = any> {
 export interface ApiError {
   code: string
   message: string
-  details?: any
+  details?: unknown
   status: number
 }
 
@@ -240,7 +240,7 @@ export type Nullable<T> = T | null
 
 export type Undefinable<T> = T | undefined
 
-export type AsyncReturnType<T extends (...args: any) => Promise<any>> = Awaited<ReturnType<T>>
+export type AsyncReturnType<T extends (...args: unknown[]) => Promise<unknown>> = Awaited<ReturnType<T>>
 
 // Component Props Types
 export interface BaseComponentProps {

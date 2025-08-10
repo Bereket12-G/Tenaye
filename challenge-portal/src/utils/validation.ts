@@ -17,7 +17,7 @@ export interface ValidationResult {
 /**
  * Validate a field against validation rules
  */
-export function validateField(value: any, rules: ValidationRule[]): ValidationResult {
+export function validateField(value: unknown, rules: ValidationRule[]): ValidationResult {
   const errors: string[] = []
 
   for (const rule of rules) {
@@ -118,8 +118,8 @@ export function validateUrl(url: string): ValidationResult {
  * Validate phone number format
  */
 export function validatePhoneNumber(phone: string): ValidationResult {
-  const phoneRegex = /^[\+]?[1-9][\d]{0,15}$/
-  const cleanPhone = phone.replace(/[\s\-\(\)]/g, '')
+  const phoneRegex = /^[+]?[1-9][\d]{0,15}$/
+  const cleanPhone = phone.replace(/[\s\-()]/g, '')
   const isValid = phoneRegex.test(cleanPhone)
   
   return {
@@ -195,7 +195,7 @@ export function validateFileType(file: File, allowedTypes: string[]): Validation
 /**
  * Validate form data
  */
-export function validateForm(formData: Record<string, any>, validationSchema: Record<string, ValidationRule[]>): Record<string, ValidationResult> {
+export function validateForm(formData: Record<string, unknown>, validationSchema: Record<string, ValidationRule[]>): Record<string, ValidationResult> {
   const results: Record<string, ValidationResult> = {}
   
   for (const [fieldName, rules] of Object.entries(validationSchema)) {
@@ -249,30 +249,30 @@ export function sanitizeString(input: string): string {
 /**
  * Validate challenge data
  */
-export function validateChallenge(data: any): ValidationResult {
+export function validateChallenge(data: Record<string, unknown>): ValidationResult {
   const errors: string[] = []
   
-  if (!data.title || data.title.trim().length === 0) {
+  if (!data.title || (typeof data.title === 'string' && data.title.trim().length === 0)) {
     errors.push('Challenge title is required')
-  } else if (data.title.length > 100) {
+  } else if (typeof data.title === 'string' && data.title.length > 100) {
     errors.push('Challenge title must be less than 100 characters')
   }
   
-  if (!data.description || data.description.trim().length === 0) {
+  if (!data.description || (typeof data.description === 'string' && data.description.trim().length === 0)) {
     errors.push('Challenge description is required')
-  } else if (data.description.length > 500) {
+  } else if (typeof data.description === 'string' && data.description.length > 500) {
     errors.push('Challenge description must be less than 500 characters')
   }
   
-  if (!data.category || data.category.trim().length === 0) {
+  if (!data.category || (typeof data.category === 'string' && data.category.trim().length === 0)) {
     errors.push('Challenge category is required')
   }
   
-  if (!data.durationDays || data.durationDays < 1 || data.durationDays > 365) {
+  if (!data.durationDays || (typeof data.durationDays === 'number' && (data.durationDays < 1 || data.durationDays > 365))) {
     errors.push('Challenge duration must be between 1 and 365 days')
   }
   
-  if (!data.estimatedDailyMinutes || data.estimatedDailyMinutes < 1 || data.estimatedDailyMinutes > 120) {
+  if (!data.estimatedDailyMinutes || (typeof data.estimatedDailyMinutes === 'number' && (data.estimatedDailyMinutes < 1 || data.estimatedDailyMinutes > 120))) {
     errors.push('Estimated daily minutes must be between 1 and 120')
   }
   
@@ -289,24 +289,24 @@ export function validateChallenge(data: any): ValidationResult {
 /**
  * Validate team data
  */
-export function validateTeam(data: any): ValidationResult {
+export function validateTeam(data: Record<string, unknown>): ValidationResult {
   const errors: string[] = []
   
-  if (!data.name || data.name.trim().length === 0) {
+  if (!data.name || (typeof data.name === 'string' && data.name.trim().length === 0)) {
     errors.push('Team name is required')
-  } else if (data.name.length > 50) {
+  } else if (typeof data.name === 'string' && data.name.length > 50) {
     errors.push('Team name must be less than 50 characters')
   }
   
-  if (!data.emoji || data.emoji.trim().length === 0) {
+  if (!data.emoji || (typeof data.emoji === 'string' && data.emoji.trim().length === 0)) {
     errors.push('Team emoji is required')
   }
   
-  if (!data.colorId || data.colorId.trim().length === 0) {
+  if (!data.colorId || (typeof data.colorId === 'string' && data.colorId.trim().length === 0)) {
     errors.push('Team color is required')
   }
   
-  if (data.chant && data.chant.length > 200) {
+  if (data.chant && typeof data.chant === 'string' && data.chant.length > 200) {
     errors.push('Team chant must be less than 200 characters')
   }
   
@@ -319,16 +319,16 @@ export function validateTeam(data: any): ValidationResult {
 /**
  * Validate post data
  */
-export function validatePost(data: any): ValidationResult {
+export function validatePost(data: Record<string, unknown>): ValidationResult {
   const errors: string[] = []
   
-  if (!data.content || data.content.trim().length === 0) {
+  if (!data.content || (typeof data.content === 'string' && data.content.trim().length === 0)) {
     errors.push('Post content is required')
-  } else if (data.content.length > 500) {
+  } else if (typeof data.content === 'string' && data.content.length > 500) {
     errors.push('Post content must be less than 500 characters')
   }
   
-  if (data.mood && data.mood.length > 10) {
+  if (data.mood && typeof data.mood === 'string' && data.mood.length > 10) {
     errors.push('Mood must be less than 10 characters')
   }
   

@@ -68,32 +68,12 @@ function Landing() {
 }
 
 // Pages
+import ChallengeList from './components/ChallengeList'
+
 function ChallengesPage() {
-  return <section className="grid gap-6">
-    <header className="flex items-center justify-between">
-      <div>
-        <h2 className="h2">Challenges</h2>
-        <p className="p-muted">Curated weekly challenges. Create your own locally.</p>
-      </div>
-      <button className="btn">New Challenge</button>
-    </header>
-    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-      {['30-min Focus', 'Daily Walk', 'Read 10 pages', 'Ship a PR'].map((title, idx) => (
-        <article key={idx} className="card space-y-2">
-          <div className="flex items-start justify-between gap-2">
-            <div>
-              <h3 className="font-semibold">{title}</h3>
-              <p className="p-muted text-sm">7-day sprint • ~20m/day</p>
-            </div>
-            <button className="btn-outline">Join</button>
-          </div>
-          <div className="h-2 bg-slate-800 rounded">
-            <div className="h-2 bg-brand-500 rounded" style={{ width: `${(idx + 1) * 20}%` }} />
-          </div>
-        </article>
-      ))}
-    </div>
-  </section>
+  return (
+    <ChallengeList />
+  )
 }
 
 function ProgressPage() {

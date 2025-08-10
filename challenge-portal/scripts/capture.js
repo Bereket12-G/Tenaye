@@ -3,9 +3,12 @@ import puppeteer from 'puppeteer'
 const BASE = 'http://localhost:4173'
 const shots = [
   { path: '/', file: 'landing.png' },
+  { path: '/onboarding', file: 'onboarding.png' },
   { path: '/community', file: 'community.png' },
   { path: '/teams', file: 'teams.png' },
   { path: '/progress', file: 'progress.png' },
+  { path: '/leaderboard', file: 'leaderboard.png' },
+  { path: '/snapshot', file: 'snapshot.png' },
 ]
 
 const browser = await puppeteer.launch({ args: ['--no-sandbox','--disable-setuid-sandbox'] })

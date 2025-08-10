@@ -76,35 +76,12 @@ function ChallengesPage() {
   )
 }
 
+import ProgressPlayground from './components/ProgressPlayground'
+
 function ProgressPage() {
-  return <section className="grid gap-6">
-    <header className="flex items-center justify-between">
-      <div>
-        <h2 className="h2">Progress Tracking</h2>
-        <p className="p-muted">Log micro-commits, maintain streaks, and see XP growth.</p>
-      </div>
-      <button className="btn">Log Progress</button>
-    </header>
-    <div className="grid gap-4 md:grid-cols-2">
-      <div className="card">
-        <h3 className="font-semibold mb-2">This Week</h3>
-        <ul className="space-y-2 text-sm">
-          {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((d, i) => (
-            <li key={d} className="flex items-center justify-between">
-              <span>{d}</span>
-              <span className="text-brand-400">{i < 4 ? '✓' : '—'}</span>
-            </li>
-          ))}
-        </ul>
-      </div>
-      <div className="card">
-        <h3 className="font-semibold mb-2">XP Overview</h3>
-        <div className="h-40 bg-slate-800 rounded grid place-items-center text-slate-400">
-          Mini chart placeholder
-        </div>
-      </div>
-    </div>
-  </section>
+  return (
+    <ProgressPlayground />
+  )
 }
 
 function CommunityPage() {

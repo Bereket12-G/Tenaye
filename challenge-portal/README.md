@@ -1,69 +1,38 @@
-# React + TypeScript + Vite
+# Challenge Portal (Frontend-only)
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Playful wellness platform with challenges, progress, community, teams, and a fun steps arena. Local-first, no backend.
 
-Currently, two official plugins are available:
+## Run locally
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- npm install
+- npm run dev
 
-## Expanding the ESLint configuration
+## Production build
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+- npm run build
+- npm run preview
 
-```js
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+## Deploy options
 
-      // Remove tseslint.configs.recommended and replace with this
-      ...tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      ...tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      ...tseslint.configs.stylisticTypeChecked,
+- Netlify: uses `netlify.toml` (SPA redirects, cache headers). Set build command `npm run build`, publish `dist/`.
+- Vercel: `vercel.json` rewrites all routes to `index.html`.
+- GitHub Pages: run `npm run build` then serve `dist/`; `postbuild` copies `404.html` for SPA fallback.
+- Docker (Nginx):
+  - docker build -t challenge-portal .
+  - docker run -p 8080:80 challenge-portal
+  - open http://localhost:8080
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+## Features
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+- Challenges with categories
+- Progress Playground with emoji calendar, badges, animations
+- Community Board with emoji avatars, flair generator, reactions, search/sort, reset demo
+- Teams Studio with silly name/chant generators, color themes, search/sort, invite links, auto-join
+- Footsteps Arena with WebAudio blips and fanfare
+- Leaderboard of Good Vibes
+- Party Mode and onboarding flow
+- PWA basics (manifest + service worker)
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+## Privacy
 
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+LocalStorage only; no server or account needed.

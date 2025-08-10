@@ -93,10 +93,27 @@ export default function TeamStepsArena() {
     return { target: 100, autoSim: true, youId: runners[0].id, runners, winnerId: null }
   })
 
+  // Motion pedometer controls
+  const [motionOn, setMotionOn] = useState(false)
+  const [sensitivityG, setSensitivityG] = useState(1.2) // threshold in g
+  const [debounceMs, setDebounceMs] = useState(350)
+  const [currentG, setCurrentG] = useState(0)
+  const lastStepRef = useRef(0)
+  const lastBelowRef = useRef(true)
+  const visibleRef = useRef(true)
+
   // persist
   useEffect(() => {
     try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)) } catch {}
   }, [state])
+
+  // page visibility
+  useEffect(() => {
+    const onVis = () => { visibleRef.current = document.visibilityState === 'visible' }
+    document.addEventListener('visibilitychange', onVis)
+    onVis()
+    return () => document.removeEventListener('visibilitychange', onVis)
+  }, [])
 
   // auto simulate
   useEffect(() => {
@@ -117,6 +134,66 @@ export default function TeamStepsArena() {
     }, 700)
     return () => clearInterval(id)
   }, [state.autoSim, state.winnerId, state.target, fanfare])
+
+  // motion pedometer listener
+  useEffect(() => {
+    if (!motionOn || state.winnerId) return
+    const hasMotion = 'DeviceMotionEvent' in window
+    if (!hasMotion) return
+
+    const handler = (e: DeviceMotionEvent) => {
+      if (!visibleRef.current) return
+      const acc = (e.accelerationIncludingGravity || e.acceleration)
+      if (!acc) return
+      const ax = acc.x || 0, ay = acc.y || 0, az = acc.z || 0
+      const m = Math.sqrt(ax*ax + ay*ay + az*az) // m/s^2
+      const g = m / 9.81
+      setCurrentG(g)
+
+      const now = Date.now()
+      const debounceOk = now - lastStepRef.current >= debounceMs
+      const crossedUp = lastBelowRef.current && g > sensitivityG
+      if (debounceOk && crossedUp) {
+        lastStepRef.current = now
+        lastBelowRef.current = false
+        // increment your runner
+        setState((prev) => {
+          if (prev.winnerId) return prev
+          const updated = prev.runners.map((r) => r.id === prev.youId ? { ...r, steps: r.steps + 1 } : r)
+          const win = updated.find((r) => r.steps >= prev.target)
+          if (win && !prev.winnerId) setTimeout(() => fanfare(), 0)
+          return { ...prev, runners: updated, winnerId: win ? win.id : null }
+        })
+        blip()
+      }
+      if (g < Math.max(1, sensitivityG - 0.15)) {
+        lastBelowRef.current = true
+      }
+    }
+
+    // iOS permission
+    const maybeRequestPermission = async () => {
+      try {
+        const anyDM = (DeviceMotionEvent as any)
+        if (anyDM && typeof anyDM.requestPermission === 'function') {
+          const res = await anyDM.requestPermission()
+          if (res !== 'granted') return false
+        }
+      } catch {}
+      return true
+    }
+
+    let active = true
+    maybeRequestPermission().then((ok) => {
+      if (!ok || !active) return
+      window.addEventListener('devicemotion', handler)
+    })
+
+    return () => {
+      active = false
+      window.removeEventListener('devicemotion', handler)
+    }
+  }, [motionOn, sensitivityG, debounceMs, blip, fanfare, state.winnerId])
 
   const winner = useMemo(() => state.runners.find(r => r.id === state.winnerId) || null, [state])
 
@@ -142,6 +219,8 @@ export default function TeamStepsArena() {
 
   const sorted = useMemo(() => state.runners.slice().sort((a,b) => b.steps - a.steps), [state.runners])
 
+  const motionSupported = typeof window !== 'undefined' && 'DeviceMotionEvent' in window
+
   return (
     <section className="grid gap-4">
       <header className="flex items-center justify-between gap-4 flex-wrap">
@@ -161,6 +240,24 @@ export default function TeamStepsArena() {
           <button className="btn" onClick={()=>addRunner()}>Add Runner</button>
         </div>
       </header>
+
+      <div className="card grid gap-3">
+        <div className="flex items-center justify-between flex-wrap gap-2">
+          <div className="flex items-center gap-2">
+            <label className="flex items-center gap-2 text-sm">
+              <input type="checkbox" disabled={!motionSupported} checked={motionOn} onChange={(e)=>setMotionOn(e.target.checked)} /> Use phone motion
+            </label>
+            {!motionSupported && <span className="text-xs p-muted">Not supported on this device</span>}
+            {motionOn && <span className="text-xs text-brand-400">Live g: {currentG.toFixed(2)}</span>}
+          </div>
+          <div className="flex items-center gap-3">
+            <label className="text-xs p-muted">Sensitivity ({sensitivityG.toFixed(2)}g)</label>
+            <input type="range" min={1.05} max={1.60} step={0.01} value={sensitivityG} onChange={(e)=>setSensitivityG(Number(e.target.value))} />
+            <label className="text-xs p-muted">Debounce {debounceMs}ms</label>
+            <input type="range" min={200} max={600} step={10} value={debounceMs} onChange={(e)=>setDebounceMs(Number(e.target.value))} />
+          </div>
+        </div>
+      </div>
 
       {winner && (
         <div className="card border-2 border-brand-500">

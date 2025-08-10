@@ -100,7 +100,24 @@ export default function TeamStudio() {
     regenerateAll()
   }
 
-  const sortedTeams = useMemo(() => teams.slice().sort((a,b) => b.createdAt - a.createdAt), [teams])
+  // Enhancements: search, sort, reset demo
+  const [query, setQuery] = useState('')
+  const [sort, setSort] = useState<'new' | 'members' | 'cheers'>('new')
+
+  const filtered = useMemo(() => {
+    const q = query.trim().toLowerCase()
+    let list = teams.filter(t => !q || t.name.toLowerCase().includes(q) || t.chant.toLowerCase().includes(q))
+    if (sort === 'new') list = list.slice().sort((a,b) => b.createdAt - a.createdAt)
+    if (sort === 'members') list = list.slice().sort((a,b) => b.members - a.members)
+    if (sort === 'cheers') list = list.slice().sort((a,b) => b.cheers - a.cheers)
+    return list
+  }, [teams, query, sort])
+
+  const resetDemo = () => {
+    localStorage.removeItem(STORAGE_TEAMS)
+    localStorage.removeItem(STORAGE_MEMBER)
+    window.location.reload()
+  }
 
   const toggleJoin = (teamId: string) => {
     setMyMembership((prev) => {
@@ -118,7 +135,6 @@ export default function TeamStudio() {
     const code = teamId.split('-')[0].toUpperCase()
     try {
       await navigator.clipboard.writeText(`Join ${teams.find(t=>t.id===teamId)?.name} with code: ${code}`)
-      // no toast lib; silent success
     } catch {}
   }
 
@@ -128,6 +144,15 @@ export default function TeamStudio() {
         <div>
           <h2 className="h2">Teams & Groups</h2>
           <p className="p-muted">Form a squad with a delightfully silly vibe. Collaboration, but make it fun.</p>
+        </div>
+        <div className="flex items-center gap-2">
+          <input className="rounded-md bg-slate-900/50 border border-slate-800 px-3 py-2" placeholder="Search teams" value={query} onChange={(e)=>setQuery(e.target.value)} />
+          <select className="rounded-md bg-slate-900/50 border border-slate-800 px-3 py-2" value={sort} onChange={(e)=>setSort(e.target.value as any)}>
+            <option value="new">Newest</option>
+            <option value="members">Most Members</option>
+            <option value="cheers">Most Cheers</option>
+          </select>
+          <button className="btn-outline" onClick={resetDemo}>Reset Demo</button>
         </div>
       </header>
 
@@ -156,7 +181,7 @@ export default function TeamStudio() {
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {sortedTeams.map((t) => {
+        {filtered.map((t) => {
           const theme = colorThemeById(t.colorId)
           const joined = !!myMembership[t.id]
           return (

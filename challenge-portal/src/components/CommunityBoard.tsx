@@ -42,7 +42,7 @@ function generateFlair(keywords: string): string {
   const extras = ['of Joy','of Calm','of Snacks','of Chaos','of Vibes','of Sunshine','of Shenanigans']
   const emojis = ['✨','🍩','🌈','🧘','🎉','🪩','🍉','🫠','🦄','🐸']
   const kw = keywords.trim()
-  const kwPart = kw ? ` ${kw.split(/[,\s]+/).filter(Boolean)[0]}` : ''
+  const kwPart = kw ? ` ${kw.split(/[\,\s]+/).filter(Boolean)[0]}` : ''
   return `${pick(vibes)} ${pick(nouns)}${kwPart} ${pick(extras)} ${pick(emojis)}`
 }
 
@@ -116,7 +116,23 @@ export default function CommunityBoard() {
     setPosts((prev) => prev.map((p) => p.id === postId ? { ...p, comments: [...p.comments, c] } : p))
   }
 
-  const sorted = useMemo(() => posts.slice().sort((a,b) => b.ts - a.ts), [posts])
+  // Enhancements: filter, sort, reset
+  const [query, setQuery] = useState('')
+  const [sort, setSort] = useState<'new' | 'reacted'>('new')
+
+  const resetDemo = () => {
+    localStorage.removeItem(STORAGE_POSTS)
+    window.location.reload()
+  }
+
+  const filtered = useMemo(() => {
+    const q = query.trim().toLowerCase()
+    const base = posts.filter(p => !q || p.content.toLowerCase().includes(q) || p.author.name.toLowerCase().includes(q))
+    if (sort === 'new') return base.slice().sort((a,b) => b.ts - a.ts)
+    return base.slice().sort((a,b) => (sumReact(b) - sumReact(a)) || (b.ts - a.ts))
+  }, [posts, query, sort])
+
+  function sumReact(p: Post) { return REACTIONS.reduce((acc, r) => acc + p.reactions[r], 0) }
 
   return (
     <section className="grid gap-6">
@@ -129,7 +145,10 @@ export default function CommunityBoard() {
               <div className="text-xs p-muted">{profile.flair}</div>
             </div>
           </div>
-          <button className="btn-outline" onClick={() => setProfile((p) => ({ ...p, avatar: pick(AVATAR_EMOJIS) }))}>Shuffle Avatar</button>
+          <div className="flex items-center gap-2">
+            <button className="btn-outline" onClick={() => setProfile((p) => ({ ...p, avatar: pick(AVATAR_EMOJIS) }))}>Shuffle Avatar</button>
+            <button className="btn-outline" onClick={resetDemo}>Reset Demo</button>
+          </div>
         </div>
         <div className="grid sm:grid-cols-3 gap-3">
           <input className="rounded-md bg-slate-900/50 border border-slate-800 px-3 py-2" placeholder="Display name" value={nameInput} onChange={(e) => setNameInput(e.target.value)} />
@@ -144,7 +163,7 @@ export default function CommunityBoard() {
       <div className="card grid gap-3">
         <div className="font-medium">Share your experience</div>
         <textarea className="rounded-md bg-slate-900/50 border border-slate-800 px-3 py-2 min-h-24" placeholder="Lighthearted thoughts, progress, or tips..." value={composer} onChange={(e) => setComposer(e.target.value)} />
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between flex-wrap gap-2">
           <div className="flex gap-2 items-center">
             <span className="text-sm p-muted">Mood</span>
             <div className="flex gap-1">
@@ -153,12 +172,19 @@ export default function CommunityBoard() {
               ))}
             </div>
           </div>
-          <button className="btn" disabled={!canPost} onClick={share}>Share</button>
+          <div className="flex items-center gap-2">
+            <input className="rounded-md bg-slate-900/50 border border-slate-800 px-3 py-2" placeholder="Search posts" value={query} onChange={(e) => setQuery(e.target.value)} />
+            <select className="rounded-md bg-slate-900/50 border border-slate-800 px-3 py-2" value={sort} onChange={(e) => setSort(e.target.value as any)}>
+              <option value="new">Newest</option>
+              <option value="reacted">Most Reacted</option>
+            </select>
+            <button className="btn" disabled={!canPost} onClick={share}>Share</button>
+          </div>
         </div>
       </div>
 
       <div className="grid gap-4">
-        {sorted.map((p) => (
+        {filtered.map((p) => (
           <article key={p.id} className="card">
             <div className="flex items-start justify-between gap-3">
               <div className="flex items-start gap-3">

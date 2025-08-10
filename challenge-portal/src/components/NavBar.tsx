@@ -1,4 +1,5 @@
 import { NavLink } from 'react-router-dom'
+import PartySwitch from './PartySwitch'
 
 export default function NavBar() {
   const linkClass = ({ isActive }: { isActive: boolean }) =>
@@ -18,6 +19,9 @@ export default function NavBar() {
           <NavLink to="/teams" className={linkClass}>Teams</NavLink>
           <NavLink to="/leaderboard" className={linkClass}>Leaderboard</NavLink>
         </nav>
+        <div className="flex items-center gap-2">
+          <PartySwitch />
+        </div>
       </div>
     </header>
   )

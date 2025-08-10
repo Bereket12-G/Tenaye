@@ -1,8 +1,13 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Link } from 'react-router-dom'
 import { useDeviceId } from '../hooks/useDeviceId'
+import { Link } from 'react-router-dom'
 
-const STORAGE_KEY = 'leaderboard-joy-v1'
+const STORAGE_KEY = 'leaderboard-joy-players-v1'
+
+const ADJ = ['Wholesome','Sparkly','Cozy','Giggle','Zen','Turbo','Chaotic','Glorious','Sneaky','Cosmic']
+const NOUN = ['Noodle','Ninja','Walrus','Wizard','Tornado','Muffin','Comet','Yogi','Disco','Koala']
+const PRAISE = ['Kindness Champion','Vibe Master','Joy Spreader','Peace Bringer','Smile Creator','Hug Expert','Laugh Generator','Calm Keeper','Energy Giver','Love Shower']
+const EMOJIS = ['✨','🌈','🧘','🎉','💪','🫶','🌟','😄','🌺','🦋']
 
 type Player = {
   id: string
@@ -21,26 +26,20 @@ type Snapshot = {
   players: Player[]
 }
 
-const EMOJIS = ['🌈','✨','🧘','🎉','🌟']
-const ADJ = ['Glowy','Kind','Cheery','Cozy','Sparkly','Sunny','Gentle','Brave','Radiant','Zesty']
-const NOUN = ['Koala','Captain','Wizard','Pinecone','Noodle','Otter','Muffin','Firefly','Panda','Cactus']
-const PRAISE = ['Radiates kindness','Spreads good vibes','Shares high-fives','Cheer captain','Joy distributor','Streak superstar']
-
 function pick<T>(arr: T[]): T { return arr[Math.floor(Math.random() * arr.length)] }
 
 function makeName(): string { return `${pick(ADJ)} ${pick(NOUN)}` }
 function makeFlair(): string { return `${pick(PRAISE)} ${pick(EMOJIS)}` }
 
 function seedPlayers(): Player[] {
-  const base = ['Ava','Ben','Kai','Mia','Nova','Jude','Remy','Skye','Zoe','Leo']
-  return base.map((n) => ({
+  return Array.from({ length: 12 }, () => ({
     id: crypto.randomUUID(),
-    name: `${n} · ${makeName()}`,
-    emoji: pick(['😄','🐝','🐢','🐼','🦊','🐧']),
-    kindness: Math.floor(600 + Math.random()*500),
-    streak: Math.floor(1 + Math.random()*15),
-    highFives: Math.floor(10 + Math.random()*100),
-    flair: makeFlair(),
+    name: makeName(),
+    emoji: pick(['🦄','🐝','🐢','🐼','🦊','🐧','🦋','🦒','🐨','🦁','🐯','🐸']),
+    kindness: Math.floor(Math.random() * 200) + 50,
+    streak: Math.floor(Math.random() * 30) + 1,
+    highFives: Math.floor(Math.random() * 100) + 10,
+    flair: makeFlair()
   }))
 }
 
@@ -50,12 +49,18 @@ export default function LeaderboardJoy() {
     try {
       const raw = localStorage.getItem(STORAGE_KEY)
       if (raw) return JSON.parse(raw)
-    } catch {}
+    } catch {
+      // Handle localStorage errors silently
+    }
     return seedPlayers()
   })
 
   useEffect(() => {
-    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(players)) } catch {}
+    try { 
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(players)) 
+    } catch {
+      // Handle localStorage errors silently
+    }
   }, [players])
 
   const sorted = useMemo(() => players.slice().sort((a,b) => {
@@ -92,7 +97,11 @@ export default function LeaderboardJoy() {
   }
 
   function copyMyId() {
-    try { navigator.clipboard.writeText(deviceId) } catch {}
+    try { 
+      navigator.clipboard.writeText(deviceId) 
+    } catch {
+      // Handle clipboard errors silently
+    }
   }
 
   const podium = sorted.slice(0,3)
@@ -147,38 +156,54 @@ export default function LeaderboardJoy() {
               </div>
               <div className="rounded-md bg-slate-900/50 border border-slate-800 p-2">
                 <div className="text-xs p-muted">High-Fives</div>
-                <div className="font-semibold">{p.highFives}</div>
+                <div className="font-semibold">{p.highFives}✋</div>
               </div>
+            </div>
+            <div className="mt-3 flex gap-2">
+              <button className="btn-outline flex-1" onClick={() => highfive(p.id)}>High-Five! ✋</button>
             </div>
           </article>
         ))}
       </div>
 
-      <div className="card divide-y divide-slate-800">
-        {others.map((p, i) => (
-          <div key={p.id} className="flex items-center justify-between py-3">
-            <div className="flex items-center gap-3">
-              <div className="w-8 text-slate-400">{i + 4}</div>
-              <div className="text-2xl">{p.emoji}</div>
-              <div>
-                <div className="font-medium flex items-center gap-2">{p.name} <YouTag p={p} /></div>
-                <div className="text-xs p-muted">{p.flair}</div>
+      <div className="grid gap-3">
+        <h3 className="font-semibold">Everyone Else</h3>
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {others.map((p) => (
+            <article key={p.id} className="card">
+              <div className="flex items-start justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="text-xl" title="Emoji">{p.emoji}</div>
+                  <div>
+                    <div className="font-semibold flex items-center gap-2">
+                      {p.name} <YouTag p={p} />
+                    </div>
+                    <div className="text-xs p-muted">{p.flair}</div>
+                  </div>
+                </div>
+                <div className="flex gap-1">
+                  <button className="btn-outline text-sm" onClick={() => boost(p.id)}>+10</button>
+                  {p.userId === deviceId ? null : <button className="btn-outline text-sm" onClick={() => markAsMe(p.id)}>Me</button>}
+                </div>
               </div>
-            </div>
-            <div className="flex items-center gap-4">
-              <div className="text-sm"><span className="p-muted">Kindness</span> <span className="font-semibold text-brand-400">{p.kindness}</span></div>
-              <div className="text-sm"><span className="p-muted">Streak</span> <span className="font-semibold">{p.streak}🔥</span></div>
-              <div className="text-sm"><span className="p-muted">High-Fives</span> <span className="font-semibold">{p.highFives}</span></div>
-              <div className="flex gap-2">
-                <button className="btn-outline" onClick={() => highfive(p.id)}>High-Five</button>
-                {p.userId === deviceId ? null : <button className="btn-outline" onClick={() => markAsMe(p.id)}>Set Me</button>}
+              <div className="mt-2 grid grid-cols-3 gap-1 text-center text-xs">
+                <div className="rounded bg-slate-900/50 p-1">
+                  <div className="text-brand-400 font-semibold">{p.kindness}</div>
+                </div>
+                <div className="rounded bg-slate-900/50 p-1">
+                  <div className="font-semibold">{p.streak}🔥</div>
+                </div>
+                <div className="rounded bg-slate-900/50 p-1">
+                  <div className="font-semibold">{p.highFives}✋</div>
+                </div>
               </div>
-            </div>
-          </div>
-        ))}
+              <div className="mt-2">
+                <button className="btn-outline w-full text-sm" onClick={() => highfive(p.id)}>High-Five! ✋</button>
+              </div>
+            </article>
+          ))}
+        </div>
       </div>
-
-      <p className="p-muted text-xs">This leaderboard celebrates consistency, kindness, and community spirit — all generated on your device.</p>
     </section>
   )
 }

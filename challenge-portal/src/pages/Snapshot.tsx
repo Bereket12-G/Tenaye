@@ -30,7 +30,9 @@ export default function SnapshotPage() {
         if (json && Array.isArray(json.players)) {
           loaded.push(json)
         }
-      } catch {}
+      } catch {
+        // Handle file parsing errors silently
+      }
     }
     setSnapshots((prev) => [...prev, ...loaded])
   }

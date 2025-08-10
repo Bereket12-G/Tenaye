@@ -42,7 +42,7 @@ function generateFlair(keywords: string): string {
   const extras = ['of Joy','of Calm','of Snacks','of Chaos','of Vibes','of Sunshine','of Shenanigans']
   const emojis = ['✨','🌈','🧘','🎉','💪']
   const kw = keywords.trim()
-  const kwPart = kw ? ` ${kw.split(/[\,\s]+/).filter(Boolean)[0]}` : ''
+  const kwPart = kw ? ` ${kw.split(/[,\s]+/).filter(Boolean)[0]}` : ''
   return `${pick(vibes)} ${pick(nouns)}${kwPart} ${pick(extras)} ${pick(emojis)}`
 }
 
@@ -56,7 +56,9 @@ export default function CommunityBoard() {
     try {
       const raw = localStorage.getItem(STORAGE_PROFILE)
       if (raw) return JSON.parse(raw)
-    } catch {}
+    } catch {
+      // Handle localStorage errors silently
+    }
     return { name: 'Guest', avatar: pick(AVATAR_EMOJIS), flair: generateFlair('') }
   })
 
@@ -64,14 +66,20 @@ export default function CommunityBoard() {
   const [kwInput, setKwInput] = useState('')
 
   useEffect(() => {
-    try { localStorage.setItem(STORAGE_PROFILE, JSON.stringify(profile)) } catch {}
+    try { 
+      localStorage.setItem(STORAGE_PROFILE, JSON.stringify(profile)) 
+    } catch {
+      // Handle localStorage errors silently
+    }
   }, [profile])
 
   const [posts, setPosts] = useState<Post[]>(() => {
     try {
       const raw = localStorage.getItem(STORAGE_POSTS)
       if (raw) return JSON.parse(raw)
-    } catch {}
+    } catch {
+      // Handle localStorage errors silently
+    }
     // Seed with a couple cheerful posts
     const seedAuthor: Profile = { name: 'Ava', avatar: '🦄', flair: 'Wholesome Wizard of Joy ✨' }
     const seed: Post[] = [
@@ -82,7 +90,11 @@ export default function CommunityBoard() {
   })
 
   useEffect(() => {
-    try { localStorage.setItem(STORAGE_POSTS, JSON.stringify(posts)) } catch {}
+    try { 
+      localStorage.setItem(STORAGE_POSTS, JSON.stringify(posts)) 
+    } catch {
+      // Handle localStorage errors silently
+    }
   }, [posts])
 
   const [composer, setComposer] = useState('')
@@ -185,7 +197,7 @@ export default function CommunityBoard() {
           </div>
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
             <input className="rounded-md bg-slate-900/50 border border-slate-800 px-3 py-2 touch-friendly" placeholder="Search posts" value={query} onChange={(e) => setQuery(e.target.value)} />
-            <select className="rounded-md bg-slate-900/50 border border-slate-800 px-3 py-2 touch-friendly" value={sort} onChange={(e) => setSort(e.target.value as any)}>
+            <select className="rounded-md bg-slate-900/50 border border-slate-800 px-3 py-2 touch-friendly" value={sort} onChange={(e) => setSort(e.target.value as 'new' | 'reacted')}>
               <option value="new">Newest</option>
               <option value="reacted">Most Reacted</option>
             </select>

@@ -1,4 +1,6 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+
+const STORAGE_KEY = 'team-steps-arena-v1'
 
 type Runner = {
   id: string
@@ -16,28 +18,33 @@ type RaceState = {
   winnerId: string | null
 }
 
-const STORAGE_KEY = 'team-steps-arena-v1'
-const EMOJIS = ['👟','🦶','🥾','🩴','🧦','🚀']
-const COLORS = ['emerald','sky','violet','pink','amber','lime']
+const COLORS = ['emerald','sky','violet','amber','rose','indigo','lime','pink','cyan','orange']
 
 function pick<T>(arr: T[]): T { return arr[Math.floor(Math.random() * arr.length)] }
 function randomName() { return pick(['Zoomy','Wiggle','Bouncy','Sunny','Sassy','Zippy','Giddy','Snappy']) + ' ' + pick(['Feet','Sneaker','Sock','Heel','Toe','Stride','Shuffle']) }
 function colorToClasses(color: string) {
-  const map: Record<string, { dot: string; bar: string; btn: string }> = {
-    emerald: { dot: 'bg-emerald-500', bar: 'from-emerald-400 to-emerald-600', btn: 'bg-emerald-600 hover:bg-emerald-700' },
-    sky:     { dot: 'bg-sky-500',     bar: 'from-sky-400 to-sky-600',         btn: 'bg-sky-600 hover:bg-sky-700' },
-    violet:  { dot: 'bg-violet-500',  bar: 'from-violet-400 to-violet-600',   btn: 'bg-violet-600 hover:bg-violet-700' },
-    pink:    { dot: 'bg-pink-500',    bar: 'from-pink-400 to-pink-600',       btn: 'bg-pink-600 hover:bg-pink-700' },
-    amber:   { dot: 'bg-amber-500',   bar: 'from-amber-400 to-amber-600',     btn: 'bg-amber-600 hover:bg-amber-700' },
-    lime:    { dot: 'bg-lime-500',    bar: 'from-lime-400 to-lime-600',       btn: 'bg-lime-600 hover:bg-lime-700' },
+  const map: Record<string, string> = {
+    emerald: 'bg-emerald-500 border-emerald-600',
+    sky: 'bg-sky-500 border-sky-600',
+    violet: 'bg-violet-500 border-violet-600',
+    amber: 'bg-amber-500 border-amber-600',
+    rose: 'bg-rose-500 border-rose-600',
+    indigo: 'bg-indigo-500 border-indigo-600',
+    lime: 'bg-lime-500 border-lime-600',
+    pink: 'bg-pink-500 border-pink-600',
+    cyan: 'bg-cyan-500 border-cyan-600',
+    orange: 'bg-orange-500 border-orange-600',
   }
-  return map[color] ?? map.emerald
+  return map[color] || map.emerald
 }
 
 function useAudio() {
   const ctxRef = useRef<AudioContext | null>(null)
   function ensureCtx() {
-    if (!ctxRef.current) ctxRef.current = new (window.AudioContext || (window as any).webkitAudioContext)()
+    if (!ctxRef.current) {
+      const AudioContextClass = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext
+      ctxRef.current = new AudioContextClass()
+    }
     return ctxRef.current!
   }
   function blip(freq = 660, durationMs = 80) {
@@ -52,7 +59,9 @@ function useAudio() {
       o.start()
       g.gain.exponentialRampToValueAtTime(0.00001, ctx.currentTime + durationMs / 1000)
       o.stop(ctx.currentTime + durationMs / 1000)
-    } catch {}
+    } catch {
+      // Handle audio errors silently
+    }
   }
   function fanfare() {
     try {
@@ -73,7 +82,9 @@ function useAudio() {
         g.gain.exponentialRampToValueAtTime(0.00001, stop)
         o.stop(stop)
       })
-    } catch {}
+    } catch {
+      // Handle audio errors silently
+    }
   }
   return { blip, fanfare }
 }
@@ -84,7 +95,9 @@ export default function TeamStepsArena() {
     try {
       const raw = localStorage.getItem(STORAGE_KEY)
       if (raw) return JSON.parse(raw)
-    } catch {}
+    } catch {
+      // Handle localStorage errors silently
+    }
     const runners: Runner[] = [
       { id: crypto.randomUUID(), name: 'You · Turbo Toe', emoji: '👟', color: 'emerald', steps: 0 },
       { id: crypto.randomUUID(), name: 'Ava · Sunny Sock', emoji: '🧦', color: 'sky', steps: 0 },
@@ -101,11 +114,14 @@ export default function TeamStepsArena() {
   const lastStepRef = useRef(0)
   const lastBelowRef = useRef(true)
   const visibleRef = useRef(true)
-  const sensorRef = useRef<any>(null)
 
   // persist
   useEffect(() => {
-    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)) } catch {}
+    try { 
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state)) 
+    } catch {
+      // Handle localStorage errors silently
+    }
   }, [state])
 
   // page visibility
@@ -132,218 +148,286 @@ export default function TeamStepsArena() {
         }
         return { ...prev, runners: updated, winnerId: winner ? winner.id : null }
       })
-    }, 700)
+    }, 1000)
     return () => clearInterval(id)
-  }, [state.autoSim, state.winnerId, state.target, fanfare])
+  }, [state.autoSim, state.winnerId, fanfare])
 
-  // motion pedometer listener (DeviceMotion + Generic Sensor API fallback)
+  const step = useCallback((id: string) => {
+    setState((prev) => {
+      if (prev.winnerId) return prev
+      const updated = prev.runners.map((r) => r.id === id ? { ...r, steps: r.steps + 1 } : r)
+      const winner = updated.find((r) => r.steps >= prev.target)
+      if (winner && !prev.winnerId) {
+        setTimeout(() => fanfare(), 0)
+      }
+      return { ...prev, runners: updated, winnerId: winner ? winner.id : null }
+    })
+  }, [fanfare])
+
+  // motion sensor
   useEffect(() => {
-    if (!motionOn || state.winnerId) return
+    if (!motionOn || !visibleRef.current) return
 
     const onStep = () => {
-      setState((prev) => {
-        if (prev.winnerId) return prev
-        const updated = prev.runners.map((r) => r.id === prev.youId ? { ...r, steps: r.steps + 1 } : r)
-        const win = updated.find((r) => r.steps >= prev.target)
-        if (win && !prev.winnerId) setTimeout(() => fanfare(), 0)
-        return { ...prev, runners: updated, winnerId: win ? win.id : null }
-      })
+      if (!visibleRef.current || !state.youId) return
+      const now = Date.now()
+      if (now - lastStepRef.current < debounceMs) return
+      lastStepRef.current = now
+      step(state.youId)
       blip()
     }
 
-    let dmActive = false
     const dmHandler = (e: DeviceMotionEvent) => {
-      if (!visibleRef.current) return
-      const acc = (e.accelerationIncludingGravity || e.acceleration)
-      if (!acc) return
-      const ax = acc.x || 0, ay = acc.y || 0, az = acc.z || 0
-      const m = Math.sqrt(ax*ax + ay*ay + az*az)
-      const g = m / 9.81
+      if (!e.accelerationIncludingGravity) return
+      const { x, y, z } = e.accelerationIncludingGravity
+      if (x === null || y === null || z === null) return
+      const g = Math.sqrt(x*x + y*y + z*z) / 9.81
       setCurrentG(g)
-      const now = Date.now()
-      const debounceOk = now - lastStepRef.current >= debounceMs
-      const crossedUp = lastBelowRef.current && g > sensitivityG
-      if (debounceOk && crossedUp) {
-        lastStepRef.current = now
+      if (g > sensitivityG && lastBelowRef.current) {
         lastBelowRef.current = false
         onStep()
+      } else if (g < sensitivityG * 0.8) {
+        lastBelowRef.current = true
       }
-      if (g < Math.max(1, sensitivityG - 0.15)) lastBelowRef.current = true
     }
 
-    // iOS permission if needed
     const maybeRequestPermission = async () => {
       try {
-        const anyDM = (DeviceMotionEvent as any)
-        if (anyDM && typeof anyDM.requestPermission === 'function') {
-          const res = await anyDM.requestPermission()
-          if (res !== 'granted') return false
+        if ('DeviceMotionEvent' in window && 'requestPermission' in (DeviceMotionEvent as unknown as { requestPermission?: () => Promise<string> })) {
+          const permission = await (DeviceMotionEvent as unknown as { requestPermission: () => Promise<string> }).requestPermission()
+          if (permission === 'granted') {
+            window.addEventListener('devicemotion', dmHandler)
+          }
+        } else {
+          window.addEventListener('devicemotion', dmHandler)
         }
-      } catch {}
-      return true
+      } catch {
+        // Handle permission errors silently
+      }
     }
 
-    let cleanup: (() => void) | null = null
-
     const start = async () => {
-      // Try DeviceMotion first
-      if ('DeviceMotionEvent' in window) {
-        const ok = await maybeRequestPermission()
-        if (ok) {
-          window.addEventListener('devicemotion', dmHandler, { passive: true } as any)
-          dmActive = true
-          cleanup = () => window.removeEventListener('devicemotion', dmHandler)
-        }
-      }
-
-      // Also try Generic Sensor API if available (useful on Android Chrome)
-      const AnyAccel = (window as any).Accelerometer
-      if (AnyAccel) {
-        try {
-          const sensor = new AnyAccel({ frequency: 30 })
-          sensorRef.current = sensor
-          sensor.addEventListener('reading', () => {
-            if (!visibleRef.current) return
-            const ax = sensor.x || 0, ay = sensor.y || 0, az = sensor.z || 0
-            const m = Math.sqrt(ax*ax + ay*ay + az*az)
-            const g = m / 9.81
-            setCurrentG(g)
-            const now = Date.now()
-            const debounceOk = now - lastStepRef.current >= debounceMs
-            const crossedUp = lastBelowRef.current && g > sensitivityG
-            if (debounceOk && crossedUp) {
-              lastStepRef.current = now
-              lastBelowRef.current = false
-              onStep()
-            }
-            if (g < Math.max(1, sensitivityG - 0.15)) lastBelowRef.current = true
-          })
-          sensor.start()
-          const prevCleanup = cleanup
-          cleanup = () => {
-            try { sensor.stop() } catch {}
-            sensorRef.current = null
-            if (dmActive) window.removeEventListener('devicemotion', dmHandler)
-            if (prevCleanup && !dmActive) prevCleanup()
-          }
-        } catch {
-          // Sensor blocked by permissions-policy or insecure context
-        }
+      try {
+        await maybeRequestPermission()
+      } catch {
+        // Handle motion sensor errors silently
       }
     }
 
     start()
-
     return () => {
-      if (cleanup) cleanup()
-      else if (dmActive) window.removeEventListener('devicemotion', dmHandler)
+      try {
+        window.removeEventListener('devicemotion', dmHandler)
+      } catch {
+        // Handle cleanup errors silently
+      }
     }
-  }, [motionOn, sensitivityG, debounceMs, blip, fanfare, state.winnerId])
-
-  const winner = useMemo(() => state.runners.find(r => r.id === state.winnerId) || null, [state])
-
-  function step(id: string) {
-    setState((prev) => {
-      if (prev.winnerId) return prev
-      const updated = prev.runners.map((r) => r.id === id ? { ...r, steps: r.steps + 1 } : r)
-      const win = updated.find((r) => r.steps >= prev.target)
-      if (win && !prev.winnerId) setTimeout(() => fanfare(), 0)
-      return { ...prev, runners: updated, winnerId: win ? win.id : null }
-    })
-    blip()
-  }
+  }, [motionOn, sensitivityG, debounceMs, state.youId, blip, step])
 
   function addRunner(name?: string, emoji?: string) {
-    const r: Runner = { id: crypto.randomUUID(), name: name || randomName(), emoji: emoji || pick(EMOJIS), color: pick(COLORS), steps: 0 }
-    setState((prev) => ({ ...prev, runners: [...prev.runners, r] }))
+    const runner: Runner = {
+      id: crypto.randomUUID(),
+      name: name || randomName(),
+      emoji: emoji || pick(['👟','🧦','🦶','👡','🥾','👢','🩴','👞']),
+      color: pick(COLORS),
+      steps: 0
+    }
+    setState((prev) => ({ ...prev, runners: [...prev.runners, runner] }))
   }
 
   function resetRace() {
-    setState((prev) => ({ ...prev, winnerId: null, runners: prev.runners.map(r => ({ ...r, steps: 0 })) }))
+    setState((prev) => ({
+      ...prev,
+      runners: prev.runners.map((r) => ({ ...r, steps: 0 })),
+      winnerId: null
+    }))
   }
 
-  const sorted = useMemo(() => state.runners.slice().sort((a,b) => b.steps - a.steps), [state.runners])
-
-  const motionSupported = typeof window !== 'undefined' && ('DeviceMotionEvent' in window || (window as any).Accelerometer)
+  const sorted = useMemo(() => state.runners.slice().sort((a, b) => b.steps - a.steps), [state.runners])
+  const maxSteps = Math.max(...state.runners.map((r) => r.steps), state.target)
 
   return (
-    <section className="grid gap-4">
-      <header className="flex items-center justify-between gap-4 flex-wrap">
-        <div>
-          <h3 className="h2">Footsteps Arena</h3>
-          <p className="p-muted">Tap to add steps. First to reach the target wins. Purely for giggles.</p>
+    <section className="space-responsive">
+      <header className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div className="space-y-2">
+          <h2 className="h2">Footsteps Arena</h2>
+          <p className="p-muted max-w-2xl">Race your friends to the finish line! Use motion controls or auto-simulate.</p>
         </div>
         <div className="flex items-center gap-2">
-          <label className="text-sm p-muted">Target</label>
-          <input type="number" min={10} max={10000} step={10} value={state.target}
-                 onChange={(e)=>setState(s=>({ ...s, target: Math.max(10, Math.min(10000, Number(e.target.value)||0)) }))}
-                 className="w-24 rounded-md bg-slate-900/50 border border-slate-800 px-3 py-2" />
-          <label className="flex items-center gap-2 text-sm p-muted">
-            <input type="checkbox" checked={state.autoSim} onChange={(e)=>setState(s=>({ ...s, autoSim: e.target.checked }))} /> Auto-sim
-          </label>
           <button className="btn-outline" onClick={resetRace}>Reset Race</button>
-          <button className="btn" onClick={()=>addRunner()}>Add Runner</button>
+          <button className="btn-outline" onClick={() => addRunner()}>Add Runner</button>
         </div>
       </header>
 
-      <div className="card grid gap-3">
-        <div className="flex items-center justify-between flex-wrap gap-2">
-          <div className="flex items-center gap-2">
-            <label className="flex items-center gap-2 text-sm">
-              <input type="checkbox" disabled={!motionSupported} checked={motionOn} onChange={(e)=>setMotionOn(e.target.checked)} /> Use phone motion
-            </label>
-            {!motionSupported && <span className="text-xs p-muted">Not supported on this device</span>}
-            {motionOn && <span className="text-xs text-brand-400">Live g: {currentG.toFixed(2)}</span>}
-          </div>
-          <div className="flex items-center gap-3">
-            <label className="text-xs p-muted">Sensitivity ({sensitivityG.toFixed(2)}g)</label>
-            <input type="range" min={1.05} max={1.60} step={0.01} value={sensitivityG} onChange={(e)=>setSensitivityG(Number(e.target.value))} />
-            <label className="text-xs p-muted">Debounce {debounceMs}ms</label>
-            <input type="range" min={200} max={600} step={10} value={debounceMs} onChange={(e)=>setDebounceMs(Number(e.target.value))} />
-          </div>
-        </div>
-      </div>
-
-      {winner && (
-        <div className="card border-2 border-brand-500">
-          <div className="font-semibold">Winner: {winner.emoji} {winner.name}</div>
-          <div className="text-sm p-muted">Victory laps unlocked! Congrats on those turbo toes.</div>
-        </div>
-      )}
-
-      <div className="grid gap-3">
-        {sorted.map((r, idx) => {
-          const theme = colorToClasses(r.color)
-          const pct = Math.min(100, Math.round((r.steps / state.target) * 100))
-          const isYou = r.id === state.youId
-          return (
-            <div key={r.id} className="card">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className={`h-2.5 w-2.5 rounded-full ${theme.dot}`} />
-                  <div className="text-xl" title="Runner">{r.emoji}</div>
-                  <div className="font-medium">{idx+1}. {r.name}</div>
-                  {isYou && <span className="text-xs text-brand-400">(You)</span>}
+      <div className="grid gap-6 lg:grid-cols-3">
+        <div className="lg:col-span-2 space-y-6">
+          <div className="card space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <div>
+                <div className="text-2xl font-bold">{state.target}</div>
+                <div className="text-sm p-muted">Target steps</div>
+              </div>
+              <div className="flex items-center gap-4">
+                <label className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    checked={state.autoSim}
+                    onChange={(e) => setState((prev) => ({ ...prev, autoSim: e.target.checked }))}
+                    className="rounded"
+                  />
+                  <span className="text-sm">Auto-simulate</span>
+                </label>
+                <label className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    checked={motionOn}
+                    onChange={(e) => setMotionOn(e.target.checked)}
+                    className="rounded"
+                  />
+                  <span className="text-sm">Motion sensor</span>
+                </label>
+              </div>
+            </div>
+            {motionOn && (
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm">
+                <div>
+                  <div className="p-muted">Current G</div>
+                  <div className="font-semibold">{currentG.toFixed(2)}</div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-sm p-muted">{r.steps} / {state.target}</span>
-                  <button className={`px-3 py-1.5 rounded-md text-white ${theme.btn}`} onClick={()=>step(r.id)} disabled={!!state.winnerId}>Step</button>
-                  <label className="text-xs p-muted flex items-center gap-1">
-                    <input type="radio" checked={isYou} onChange={()=>setState(s=>({ ...s, youId: r.id }))} /> Mark as you
-                  </label>
+                <div>
+                  <div className="p-muted">Threshold</div>
+                  <div className="font-semibold">{sensitivityG.toFixed(1)}</div>
+                </div>
+                <div>
+                  <div className="p-muted">Debounce</div>
+                  <div className="font-semibold">{debounceMs}ms</div>
+                </div>
+                <div className="flex gap-2">
+                  <input
+                    type="range"
+                    min="0.5"
+                    max="3"
+                    step="0.1"
+                    value={sensitivityG}
+                    onChange={(e) => setSensitivityG(parseFloat(e.target.value))}
+                    className="flex-1"
+                  />
                 </div>
               </div>
-              <div className="mt-3">
-                <div className="relative h-8 rounded-full bg-slate-800 overflow-hidden">
-                  <div className={`absolute inset-y-0 left-0 bg-gradient-to-r ${theme.bar}`} style={{ width: pct + '%' }} />
-                  <div className="absolute inset-y-0 left-0 flex items-center" style={{ transform: `translateX(${pct}%)` }}>
-                    <span className="-translate-x-1/2 text-lg motion-safe:animate-pop" title="Foot">{r.emoji}</span>
+            )}
+          </div>
+
+          <div className="space-y-4">
+            {sorted.map((runner) => (
+              <div key={runner.id} className="card space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="text-2xl">{runner.emoji}</div>
+                    <div>
+                      <div className="font-semibold flex items-center gap-2">
+                        {runner.name}
+                        {runner.id === state.youId && <span className="text-xs text-brand-400">(You)</span>}
+                        {runner.id === state.winnerId && <span className="motion-safe:animate-pop">🏆</span>}
+                      </div>
+                      <div className="text-sm p-muted">{runner.steps} steps</div>
+                    </div>
+                  </div>
+                  <div className="flex gap-2">
+                    <button 
+                      className="btn-outline" 
+                      onClick={() => step(runner.id)}
+                      disabled={!!state.winnerId}
+                    >
+                      Step
+                    </button>
+                    {runner.id === state.youId ? null : (
+                      <button 
+                        className="btn-outline" 
+                        onClick={() => setState((prev) => ({ ...prev, youId: runner.id }))}
+                      >
+                        Set Me
+                      </button>
+                    )}
+                  </div>
+                </div>
+                <div className="relative h-4 bg-slate-800 rounded-full overflow-hidden">
+                  <div 
+                    className={`h-full ${colorToClasses(runner.color)} transition-all duration-300 ease-out`}
+                    style={{ width: `${Math.min(100, (runner.steps / maxSteps) * 100)}%` }}
+                  />
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="text-xs font-medium text-white drop-shadow">
+                      {Math.round((runner.steps / maxSteps) * 100)}%
+                    </div>
                   </div>
                 </div>
               </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="space-y-6">
+          <div className="card space-y-4">
+            <h3 className="font-semibold text-lg">Race Controls</h3>
+            <div className="space-y-3">
+              <div>
+                <label className="block text-sm font-medium mb-2">Target Steps</label>
+                <input
+                  type="number"
+                  min="10"
+                  max="1000"
+                  value={state.target}
+                  onChange={(e) => setState((prev) => ({ ...prev, target: parseInt(e.target.value) || 100 }))}
+                  className="w-full rounded-md bg-slate-900/50 border border-slate-800 px-3 py-2"
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <button 
+                  className="btn-outline" 
+                  onClick={() => setState((prev) => ({ ...prev, target: Math.max(10, prev.target - 10) }))}
+                >
+                  -10
+                </button>
+                <button 
+                  className="btn-outline" 
+                  onClick={() => setState((prev) => ({ ...prev, target: Math.min(1000, prev.target + 10) }))}
+                >
+                  +10
+                </button>
+              </div>
             </div>
-          )
-        })}
+          </div>
+
+          <div className="card space-y-4">
+            <h3 className="font-semibold text-lg">Motion Settings</h3>
+            <div className="space-y-3">
+              <div>
+                <label className="block text-sm font-medium mb-2">Sensitivity: {sensitivityG.toFixed(1)}g</label>
+                <input
+                  type="range"
+                  min="0.5"
+                  max="3"
+                  step="0.1"
+                  value={sensitivityG}
+                  onChange={(e) => setSensitivityG(parseFloat(e.target.value))}
+                  className="w-full"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-2">Debounce: {debounceMs}ms</label>
+                <input
+                  type="range"
+                  min="100"
+                  max="1000"
+                  step="50"
+                  value={debounceMs}
+                  onChange={(e) => setDebounceMs(parseInt(e.target.value))}
+                  className="w-full"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </section>
   )

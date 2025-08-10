@@ -5,7 +5,11 @@ const EVENT_KEY = 'party-mode-change'
 
 export function usePartyMode() {
   const [on, setOn] = useState<boolean>(() => {
-    try { return localStorage.getItem(STORAGE_KEY) === 'on' } catch { return false }
+    try { 
+      return localStorage.getItem(STORAGE_KEY) === 'on' 
+    } catch {
+      return false
+    }
   })
 
   useEffect(() => {
@@ -20,7 +24,11 @@ export function usePartyMode() {
   const toggle = () => {
     const next = !on
     setOn(next)
-    try { localStorage.setItem(STORAGE_KEY, next ? 'on' : 'off') } catch {}
+    try { 
+      localStorage.setItem(STORAGE_KEY, next ? 'on' : 'off') 
+    } catch {
+      // Handle localStorage errors silently
+    }
     window.dispatchEvent(new CustomEvent<boolean>(EVENT_KEY, { detail: next }))
   }
 

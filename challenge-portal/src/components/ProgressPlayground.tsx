@@ -43,13 +43,17 @@ export default function ProgressPlayground() {
     try {
       const raw = localStorage.getItem(STORAGE_KEY)
       if (raw) setLogs(JSON.parse(raw))
-    } catch {}
+    } catch {
+      // Handle localStorage errors silently
+    }
   }, [])
 
   useEffect(() => {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(logs))
-    } catch {}
+    } catch {
+      // Handle localStorage errors silently
+    }
   }, [logs])
 
   const monthWeeks = useMemo(() => getMonthMatrix(month), [month])
